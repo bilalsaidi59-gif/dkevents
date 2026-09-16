@@ -81,6 +81,26 @@ textarea.field{resize:vertical;min-height:88px}
 .edit{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .edit input,.edit select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;color:var(--text);background:#fff}
 .lbl2{font-size:11px;color:var(--muted);margin-bottom:4px}
+.tabsbar{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 20px}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)}
+.tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab .n{opacity:.65;margin-left:5px;font-weight:700}
+.pager{display:flex;gap:6px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.pager button{min-width:38px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;cursor:pointer;font-weight:700;color:var(--ink)}
+.pager button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pager button[disabled]{opacity:.35;cursor:default}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;max-width:380px;margin-bottom:24px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-head b{font-size:15px}
+.cal-nav{background:none;border:1px solid var(--line);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--ink)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{font-size:11px;color:var(--muted);text-align:center;padding:2px 0;font-weight:700}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:9px;position:relative;color:var(--ink)}
+.cal-day.empty{visibility:hidden}
+.cal-day.has{background:rgba(31,122,60,.14);color:#1b6b38;font-weight:800;cursor:pointer}
+.cal-day.has i{position:absolute;bottom:5px;width:4px;height:4px;border-radius:50%;background:#1f7a3c}
+.cal-day.sel{outline:2px solid var(--accent);outline-offset:-2px}
+.cal-legend{font-size:11px;color:var(--muted);margin-top:10px}
 .ac{position:relative}
 .ac-list{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:30;overflow:hidden;display:none;max-height:280px;overflow-y:auto}
 .ac-list.open{display:block}.ac-item{padding:11px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--line)}.ac-item:last-child{border-bottom:none}.ac-item:hover{background:var(--bg-2)}
@@ -126,9 +146,11 @@ textarea.field{resize:vertical;min-height:88px}
     <div class="acct"><span id="adminWho"></span><button class="linkbtn" id="btnRefresh">Rafraîchir</button><button class="linkbtn" id="btnLogoutAdmin">Se déconnecter</button></div>
   </div></header>
   <main class="wrap" style="padding:30px 22px 60px">
-    <h1 style="font-size:26px;margin-bottom:4px">Demandes de réservation</h1>
-    <p style="color:var(--muted);margin-bottom:22px" id="adminCount"></p>
+    <h1 style="font-size:26px;margin-bottom:16px">Demandes de réservation</h1>
+    <div id="calWrap"></div>
+    <div id="tabs" class="tabsbar"></div>
     <div id="ordersList"></div>
+    <div id="pager" class="pager"></div>
   </main>
 </div>
 
@@ -216,7 +238,7 @@ const $=id=>document.getElementById(id);
 const money=n=>CONFIG.currency+n.toLocaleString("fr-BE");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let mode="login", currentUser=null, currentData=null, isGuest=false, catalogLoaded=false, pendingProfile=null, resolvedOnce=false;
-const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[];
+const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[], filterStatus="tous", filterDay="", currentPage=1, calMonth=new Date();
 ["brandLogoAuth","brandLogoBook","brandLogoAdmin"].forEach(function(id){ var el=document.getElementById(id); if(el) el.src=IMAGES.logo; });
 ["igAuth","igBook"].forEach(function(id){ var el=document.getElementById(id); if(el) el.href=CONFIG.instagramUrl; });
 function timeOptionsHTML(sel){ var s='<option value="">-- heure --</option>'; for(var h=0;h<24;h++){ for(var m=0;m<60;m+=30){ var t=(h<10?"0":"")+h+":"+(m<10?"0":"")+m; s+='<option value="'+t+'"'+(t===sel?' selected':'')+'>'+t+'</option>'; } } return s; }
@@ -256,11 +278,58 @@ async function loadOrders(){
 }
 function renderOrders(orders){
   currentOrders=orders; ordersById={}; orders.forEach(o=>ordersById[o.id]=o);
-  const pending=orders.filter(o=>o.status==="en attente").length;
-  $("adminCount").textContent = orders.length ? (pending+" en attente · "+orders.length+" au total") : "";
-  if(!orders.length){ $("ordersList").innerHTML='<div class="soon">Aucune demande pour l\'instant.</div>'; return; }
-  $("ordersList").innerHTML = orders.map(orderCard).join("");
+  renderDashboard();
 }
+function renderDashboard(){ renderTabs(); renderCalendar(); renderList(); }
+function applyFilters(){
+  return currentOrders.filter(function(o){
+    var st=o.status||"en attente";
+    if(filterStatus!=="tous" && st!==filterStatus) return false;
+    if(filterDay && (o.rental||{}).date!==filterDay) return false;
+    return true;
+  });
+}
+function renderTabs(){
+  var counts={"tous":currentOrders.length,"en attente":0,"confirmée":0,"refusée":0,"annulée":0};
+  currentOrders.forEach(function(o){ var s=o.status||"en attente"; if(counts[s]!==undefined) counts[s]++; });
+  var defs=[["tous","Tous"],["en attente","En attente"],["confirmée","Confirmées"],["refusée","Refusées"],["annulée","Annulées"]];
+  var h=defs.map(function(d){ return '<button class="tab '+(filterStatus===d[0]?"on":"")+'" onclick="setFilter(\''+d[0]+'\')">'+d[1]+'<span class="n">'+(counts[d[0]]||0)+'</span></button>'; }).join("");
+  if(filterDay) h+='<button class="tab on" onclick="clearDay()">'+fmt(filterDay)+' ✕</button>';
+  $("tabs").innerHTML=h;
+}
+function renderList(){
+  var list=applyFilters(), per=6;                       // ← nombre de demandes par page
+  var pages=Math.max(1,Math.ceil(list.length/per));
+  if(currentPage>pages) currentPage=pages; if(currentPage<1) currentPage=1;
+  var start=(currentPage-1)*per, pageItems=list.slice(start,start+per);
+  $("ordersList").innerHTML = pageItems.length ? pageItems.map(orderCard).join("") : '<div class="soon">Aucune demande dans cette catégorie.</div>';
+  renderPager(pages);
+}
+function renderPager(pages){
+  if(pages<=1){ $("pager").innerHTML=""; return; }
+  var h='<button onclick="goPage('+(currentPage-1)+')"'+(currentPage<=1?" disabled":"")+'>‹</button>';
+  for(var p=1;p<=pages;p++) h+='<button class="'+(p===currentPage?"on":"")+'" onclick="goPage('+p+')">'+p+'</button>';
+  h+='<button onclick="goPage('+(currentPage+1)+')"'+(currentPage>=pages?" disabled":"")+'>›</button>';
+  $("pager").innerHTML=h;
+}
+function renderCalendar(){
+  var y=calMonth.getFullYear(), m=calMonth.getMonth(), days={};
+  currentOrders.forEach(function(o){ if((o.status||"")==="confirmée"){ var d=(o.rental||{}).date; if(d) days[d]=(days[d]||0)+1; } });
+  var startDow=(new Date(y,m,1).getDay()+6)%7, nDays=new Date(y,m+1,0).getDate();
+  var moisFR=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var dow=["L","M","M","J","V","S","D"], cells="";
+  for(var i=0;i<startDow;i++) cells+='<div class="cal-day empty"></div>';
+  for(var day=1;day<=nDays;day++){
+    var ds=y+"-"+(m+1<10?"0":"")+(m+1)+"-"+(day<10?"0":"")+day, has=days[ds], sel=filterDay===ds;
+    cells+='<div class="cal-day '+(has?"has":"")+(sel?" sel":"")+'"'+(has?' onclick="pickDay(\''+ds+'\')" title="'+has+' confirmée(s)"':'')+'>'+day+(has?'<i></i>':'')+'</div>';
+  }
+  $("calWrap").innerHTML='<div class="cal"><div class="cal-head"><button class="cal-nav" onclick="calNav(-1)">‹</button><b>'+moisFR[m]+' '+y+'</b><button class="cal-nav" onclick="calNav(1)">›</button></div><div class="cal-grid">'+dow.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join("")+cells+'</div><div class="cal-legend">Jours en vert = réservation confirmée · cliquez pour filtrer</div></div>';
+}
+window.setFilter=function(s){ filterStatus=s; currentPage=1; renderDashboard(); };
+window.clearDay=function(){ filterDay=""; currentPage=1; renderDashboard(); };
+window.goPage=function(p){ currentPage=p; renderList(); try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){} };
+window.calNav=function(delta){ calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1); renderCalendar(); };
+window.pickDay=function(ds){ filterDay=(filterDay===ds?"":ds); currentPage=1; renderDashboard(); };
 function orderCard(o){
   const c=o.client||{}, r=o.rental||{};
   const items=(o.items||[]).map(it=>it.quantity+"× "+it.name).join(", ");
