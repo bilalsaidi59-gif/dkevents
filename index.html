@@ -74,7 +74,7 @@ header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px so
 .request{margin:52px 0 40px;display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px}.panel h2{font-size:20px;margin-bottom:4px}.panel .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.form-grid .full{grid-column:1/-1}
-.form-grid label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}.form-grid label .req{color:var(--danger)}
+.form-grid label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}.req{color:var(--danger)}
 textarea.field{resize:vertical;min-height:88px}
 .acts{display:flex;gap:10px;margin-top:12px}
 .edit{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
@@ -107,7 +107,7 @@ textarea.field{resize:vertical;min-height:88px}
     <img class="logo-big" id="brandLogoAuth" alt="DK Events"><div class="brand-sub">ESPACE DE RÉSERVATION</div>
     <div class="tabs"><button id="tabLogin" class="on">Se connecter</button><button id="tabSignup">Créer un compte</button></div>
     <div id="fieldName" class="hidden"><label for="name">Nom</label><input class="field" id="name" type="text" placeholder="Prénom et nom"></div>
-    <div id="fieldPhone" class="hidden"><label for="signupPhone">Téléphone</label><input class="field" id="signupPhone" type="tel" placeholder="+32 ..."></div>
+    <div id="fieldPhone" class="hidden"><label for="signupPhone">Téléphone <span class="req">*</span></label><input class="field" id="signupPhone" type="tel" placeholder="+32 ..."></div>
     <label for="email">Email</label><input class="field" id="email" type="email" placeholder="vous@email.com">
     <label for="pw">Mot de passe</label><input class="field" id="pw" type="password" placeholder="••••••••">
     <button class="btn" id="btnSubmit" style="width:100%">Se connecter</button>
@@ -154,7 +154,7 @@ textarea.field{resize:vertical;min-height:88px}
         <h2>Vos coordonnées</h2><p class="sub">Pour vous recontacter et confirmer.</p>
         <div class="form-grid">
           <div><label for="fName">Nom <span class="req">*</span></label><input class="field" id="fName" type="text" placeholder="Prénom et nom"></div>
-          <div><label for="fPhone">Téléphone</label><input class="field" id="fPhone" type="tel" placeholder="+32 ..."></div>
+          <div><label for="fPhone">Téléphone <span class="req">*</span></label><input class="field" id="fPhone" type="tel" placeholder="+32 ..."></div>
           <div class="full"><label for="fEmail">Email <span class="req">*</span></label><input class="field" id="fEmail" type="email" placeholder="vous@email.com"></div>
           <div class="full"><label for="fAddress">Lieu / adresse de l'événement</label><div class="ac"><input class="field" id="fAddress" type="text" placeholder="Commencez à taper l'adresse..." autocomplete="off"><div class="ac-list" id="acList"></div></div><div class="ac-hint" id="acHint">Choisissez une adresse dans la liste pour calculer la livraison.</div></div>
           <div class="full"><label for="fMsg">Message</label><textarea class="field" id="fMsg" placeholder="Type d'événement, nombre d'invités, précisions..."></textarea></div>
@@ -229,7 +229,7 @@ function setMode(m){ mode=m; msg(""); $("tabLogin").classList.toggle("on",m==="l
 $("btnSubmit").addEventListener("click",async()=>{
   msg(""); const email=$("email").value.trim(), pw=$("pw").value; $("btnSubmit").disabled=true;
   try{
-    if(mode==="signup"){ const name=$("name").value.trim(), phone=$("signupPhone").value.trim(); if(!name){ msg("Indiquez votre nom.",true); $("btnSubmit").disabled=false; return; }
+    if(mode==="signup"){ const name=$("name").value.trim(), phone=$("signupPhone").value.trim(); if(!name){ msg("Indiquez votre nom.",true); $("btnSubmit").disabled=false; return; } if(!phone){ msg("Indiquez votre numéro de téléphone.",true); $("btnSubmit").disabled=false; return; }
       const cred=await createUserWithEmailAndPassword(auth,email,pw);
       pendingProfile={name,email,phone,role:"client"};
       await setDoc(doc(db,"users",cred.user.uid),Object.assign({createdAt:serverTimestamp()},pendingProfile));
@@ -406,9 +406,10 @@ function finishDelivery(ow,it,br){ const km=br?0:Math.round(ow*2), fee=br?0:Math
 $("send").addEventListener("click",submitOrder);
 async function submitOrder(){
   const m=$("sendMsg"); m.className="submit-msg"; m.textContent="";
-  const name=$("fName").value.trim(),email=$("fEmail").value.trim(),date=$("dEvent").value,ts=$("tStart").value,te=$("tEnd").value,items=Object.keys(cart);
+  const name=$("fName").value.trim(),email=$("fEmail").value.trim(),phone=$("fPhone").value.trim(),date=$("dEvent").value,ts=$("tStart").value,te=$("tEnd").value,items=Object.keys(cart);
   if(!name) return fail("Indiquez votre nom.");
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Indiquez un email valide.");
+  if(!phone) return fail("Indiquez votre numéro de téléphone.");
   if(!date) return fail("Indiquez la date de l'événement.");
   if(!ts) return fail("Indiquez l'heure de début.");
   if(!items.length) return fail("Ajoutez au moins un matériel.");
