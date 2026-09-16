@@ -28,6 +28,7 @@ input,button,textarea{font:inherit;color:inherit}
 .brand small{display:block;font-size:11px;letter-spacing:.22em;font-weight:600;color:var(--muted);margin-top:4px}
 .logo-big{display:block;width:240px;max-width:78%;margin:0 auto 10px}
 .brand-sub{text-align:center;font-size:11px;letter-spacing:.22em;font-weight:600;color:var(--muted)}
+.ig-link{display:block;text-align:center;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:underline}
 .logo-sm{height:32px;width:auto;display:block}
 .tabs{display:flex;gap:6px;background:var(--bg-2);border-radius:12px;padding:5px;margin:22px 0 6px}
 .tabs button{flex:1;border:none;background:transparent;padding:10px;border-radius:9px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
@@ -114,6 +115,7 @@ textarea.field{resize:vertical;min-height:88px}
     <div id="msg"></div>
     <div class="divider">ou</div>
     <button class="btn btn-ghost" id="btnGuest" style="width:100%">Continuer en tant qu'invité</button>
+    <a class="ig-link" id="igAuth" target="_blank" rel="noopener">Voir nos réalisations sur Instagram</a>
   </div>
 </div>
 
@@ -134,7 +136,7 @@ textarea.field{resize:vertical;min-height:88px}
 <div id="bookingView" class="hidden">
   <header class="top"><div class="wrap">
     <img class="logo-sm" id="brandLogoBook" alt="DK Events">
-    <div class="acct"><span id="acctLabel"></span><button class="linkbtn" id="btnAcct"></button></div>
+    <div class="acct"><a class="linkbtn" id="igBook" target="_blank" rel="noopener" style="text-decoration:none">Instagram</a><span id="acctLabel"></span><button class="linkbtn" id="btnAcct"></button></div>
   </div></header>
   <main class="wrap">
     <section class="hero">
@@ -197,7 +199,7 @@ const firebaseConfig = {
 const fbapp=initializeApp(firebaseConfig), auth=getAuth(fbapp), db=getFirestore(fbapp);
 
 const CONFIG={
-  currency:"€", originLat:50.8339, originLng:4.3130, pricePerKm:1,
+  currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", originLat:50.8339, originLng:4.3130, pricePerKm:1,
   catalogUrl:"https://script.google.com/macros/s/AKfycbzlhVSa9PXA1f7_R5AbhJimjXg1VOQ_EzGPrOqI527P7izkjK2Koe_yvEJ00YJzdletgA/exec",
   products:[
     {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · jusqu'à 1h",photo:IMAGES.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
@@ -216,6 +218,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 let mode="login", currentUser=null, currentData=null, isGuest=false, catalogLoaded=false, pendingProfile=null, resolvedOnce=false;
 const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[];
 ["brandLogoAuth","brandLogoBook","brandLogoAdmin"].forEach(function(id){ var el=document.getElementById(id); if(el) el.src=IMAGES.logo; });
+["igAuth","igBook"].forEach(function(id){ var el=document.getElementById(id); if(el) el.href=CONFIG.instagramUrl; });
 function timeOptionsHTML(sel){ var s='<option value="">-- heure --</option>'; for(var h=0;h<24;h++){ for(var m=0;m<60;m+=30){ var t=(h<10?"0":"")+h+":"+(m<10?"0":"")+m; s+='<option value="'+t+'"'+(t===sel?' selected':'')+'>'+t+'</option>'; } } return s; }
 $("tStart").innerHTML=timeOptionsHTML(""); $("tEnd").innerHTML=timeOptionsHTML("");
 
@@ -426,6 +429,7 @@ async function submitOrder(){
   const btn=$("send"); btn.disabled=true; btn.textContent="Envoi…";
   try{
     await addDoc(collection(db,"orders"),order);
+    if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"new"},order))}).catch(()=>{}); } // email récap client + copie DK Events
     if(currentUser){ try{ await updateDoc(doc(db,"users",currentUser.uid),{phone:order.client.phone,address:order.client.address,savedDelivery:del||null,updatedAt:serverTimestamp()}); currentData.phone=order.client.phone; currentData.address=order.client.address; currentData.savedDelivery=del||null; }catch(_){ } }
     document.querySelector(".request").classList.add("hidden"); document.querySelector(".section-head").classList.add("hidden"); $("grid").classList.add("hidden"); document.querySelector(".hero").classList.add("hidden"); $("done").classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"});
   }
