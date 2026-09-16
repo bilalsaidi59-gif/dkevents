@@ -40,6 +40,12 @@ input,button,textarea{font:inherit;color:inherit}
 .pill{display:inline-block;background:var(--bg-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;margin-bottom:16px}
 .soon{background:var(--bg-2);border:1px dashed var(--line);border-radius:12px;padding:16px;color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.5}
 .loading{color:var(--muted);text-align:center;padding:40px}
+.wa-float{position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.28);z-index:300}
+.wa-float svg{width:30px;height:30px;fill:#fff}
+.stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.stat{flex:1;min-width:100px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font-size:22px;font-family:Space Grotesk,sans-serif}
+.stat span{font-size:12px;color:var(--muted)}
 /* BOOKING */
 header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
@@ -147,7 +153,9 @@ textarea.field{resize:vertical;min-height:88px}
   </div></header>
   <main class="wrap" style="padding:30px 22px 60px">
     <h1 style="font-size:26px;margin-bottom:16px">Demandes de réservation</h1>
+    <div id="stats"></div>
     <div id="calWrap"></div>
+    <input id="adminSearch" class="field" placeholder="Rechercher un nom ou un email…" oninput="setSearch(this.value)" style="max-width:340px;margin-bottom:14px">
     <div id="tabs" class="tabsbar"></div>
     <div id="ordersList"></div>
     <div id="pager" class="pager"></div>
@@ -211,6 +219,8 @@ textarea.field{resize:vertical;min-height:88px}
   </main>
 </div>
 
+<a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
@@ -228,7 +238,7 @@ const firebaseConfig = {
 const fbapp=initializeApp(firebaseConfig), auth=getAuth(fbapp), db=getFirestore(fbapp);
 
 const CONFIG={
-  currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", originLat:50.8339, originLng:4.3130, pricePerKm:1,
+  currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", whatsapp:"32483495859", originLat:50.8339, originLng:4.3130, pricePerKm:1,
   catalogUrl:"https://script.google.com/macros/s/AKfycbzlhVSa9PXA1f7_R5AbhJimjXg1VOQ_EzGPrOqI527P7izkjK2Koe_yvEJ00YJzdletgA/exec",
   products:[
     {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · jusqu'à 1h",photo:IMAGES.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
@@ -245,13 +255,14 @@ const $=id=>document.getElementById(id);
 const money=n=>CONFIG.currency+n.toLocaleString("fr-BE");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let mode="login", currentUser=null, currentData=null, isGuest=false, catalogLoaded=false, pendingProfile=null, resolvedOnce=false;
-const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[], filterStatus="tous", filterDay="", currentPage=1, calMonth=new Date();
+const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[], filterStatus="tous", filterDay="", filterQuery="", currentPage=1, calMonth=new Date(), takenDate=null, takenIds=[];
 ["brandLogoAuth","brandLogoBook","brandLogoAdmin"].forEach(function(id){ var el=document.getElementById(id); if(el) el.src=IMAGES.logo; });
 ["igAuth","igBook"].forEach(function(id){ var el=document.getElementById(id); if(el) el.href=CONFIG.instagramUrl; });
+var _waf=document.getElementById("waFloat"); if(_waf) _waf.href="https://wa.me/"+CONFIG.whatsapp;
 function timeOptionsHTML(sel){ var s='<option value="">-- heure --</option>'; for(var h=0;h<24;h++){ for(var m=0;m<60;m+=30){ var t=(h<10?"0":"")+h+":"+(m<10?"0":"")+m; s+='<option value="'+t+'"'+(t===sel?' selected':'')+'>'+t+'</option>'; } } return s; }
 $("tStart").innerHTML=timeOptionsHTML(""); $("tEnd").innerHTML=timeOptionsHTML("");
 
-function showView(v){ ["loading","authView","adminView","bookingView"].forEach(x=>$(x).classList.add("hidden")); $(v).classList.remove("hidden"); }
+function showView(v){ ["loading","authView","adminView","bookingView"].forEach(x=>$(x).classList.add("hidden")); $(v).classList.remove("hidden"); var waf=$("waFloat"); if(waf) waf.classList.toggle("hidden", v==="adminView"); }
 function msg(t,err){ $("msg").textContent=t; $("msg").style.color=err?"var(--danger)":"var(--ok)"; }
 
 /* ---- AUTH ---- */
@@ -287,12 +298,20 @@ function renderOrders(orders){
   currentOrders=orders; ordersById={}; orders.forEach(o=>ordersById[o.id]=o);
   renderDashboard();
 }
-function renderDashboard(){ renderTabs(); renderCalendar(); renderList(); }
+function renderDashboard(){ renderStats(); renderTabs(); renderCalendar(); renderList(); }
+function renderStats(){
+  var now=new Date(), m=now.getMonth(), y=now.getFullYear();
+  var mo=currentOrders.filter(function(o){ var t=tms(o); if(!t) return false; var d=new Date(t); return d.getMonth()===m&&d.getFullYear()===y; });
+  var conf=mo.filter(function(o){return (o.status||"")==="confirmée";});
+  var rev=conf.reduce(function(s,o){return s+(o.estimatedTotal||0);},0);
+  var el=$("stats"); if(el) el.innerHTML='<div class="stats"><div class="stat"><b>'+mo.length+'</b><span>demandes ce mois</span></div><div class="stat"><b>'+conf.length+'</b><span>confirmées</span></div><div class="stat"><b>'+money(rev)+'</b><span>estimé confirmé</span></div></div>';
+}
 function applyFilters(){
   return currentOrders.filter(function(o){
     var st=o.status||"en attente";
     if(filterStatus!=="tous" && st!==filterStatus) return false;
     if(filterDay && (o.rental||{}).date!==filterDay) return false;
+    if(filterQuery){ var cl=o.client||{}; if(((cl.name||"")+" "+(cl.email||"")).toLowerCase().indexOf(filterQuery)===-1) return false; }
     return true;
   });
 }
@@ -333,6 +352,7 @@ function renderCalendar(){
   $("calWrap").innerHTML='<div class="cal"><div class="cal-head"><button class="cal-nav" onclick="calNav(-1)">‹</button><b>'+moisFR[m]+' '+y+'</b><button class="cal-nav" onclick="calNav(1)">›</button></div><div class="cal-grid">'+dow.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join("")+cells+'</div><div class="cal-legend">Jours en vert = réservation confirmée · cliquez pour filtrer</div></div>';
 }
 window.setFilter=function(s){ filterStatus=s; currentPage=1; renderDashboard(); };
+window.setSearch=function(v){ filterQuery=(v||"").trim().toLowerCase(); currentPage=1; renderList(); };
 window.clearDay=function(){ filterDay=""; currentPage=1; renderDashboard(); };
 window.goPage=function(p){ currentPage=p; renderList(); try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){} };
 window.calNav=function(delta){ calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1); renderCalendar(); };
@@ -353,8 +373,11 @@ function orderCard(o){
   if(st==="en attente") actions='<div class="acts"><button class="btn" style="flex:1" onclick="confirmOrder(\''+o.id+'\')">Confirmer</button><button class="btn btn-ghost" style="flex:1" onclick="refuseOrder(\''+o.id+'\')">Refuser</button></div>';
   else if(st==="confirmée") actions='<div class="acts"><button class="btn btn-ghost" style="flex:1" onclick="cancelOrder(\''+o.id+'\')">Annuler</button><button class="btn btn-ghost" style="flex:1" onclick="reopenOrder(\''+o.id+'\')">Remettre en attente</button></div>';
   else actions='<div class="acts"><button class="btn btn-ghost" style="flex:1" onclick="reopenOrder(\''+o.id+'\')">Remettre en attente</button></div>';
-  const edit='<button class="linkbtn" style="margin-top:10px" onclick="toggleEdit(\''+o.id+'\')">Modifier date / heure</button>'
-    +'<div class="edit hidden" id="edit-'+o.id+'"><div><div class="lbl2">Date</div><input type="date" id="ed-date-'+o.id+'" value="'+(r.date||"")+'"></div><div><div class="lbl2">Début</div><select id="ed-ts-'+o.id+'">'+timeOptionsHTML(r.startTime||"")+'</select></div><div><div class="lbl2">Fin</div><select id="ed-te-'+o.id+'">'+timeOptionsHTML(r.endTime||"")+'</select></div><button class="btn" onclick="saveEdit(\''+o.id+'\')">Enregistrer</button></div>';
+  const itemsEdit=CONFIG.products.filter(function(p){return p.active!==false;}).map(function(p){ var q=0; (o.items||[]).forEach(function(it){ if(it.id===p.id) q=it.quantity; }); return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0"><span style="font-size:13px">'+esc(p.name)+'</span><input class="field" type="number" min="0" value="'+q+'" id="edq-'+o.id+'-'+p.id+'" style="width:70px"></div>'; }).join("");
+  const edit='<button class="linkbtn" style="margin-top:10px" onclick="toggleEdit(\''+o.id+'\')">Modifier la demande</button>'
+    +'<div class="edit hidden" id="edit-'+o.id+'"><div><div class="lbl2">Date</div><input type="date" id="ed-date-'+o.id+'" value="'+(r.date||"")+'"></div><div><div class="lbl2">Début</div><select id="ed-ts-'+o.id+'">'+timeOptionsHTML(r.startTime||"")+'</select></div><div><div class="lbl2">Fin</div><select id="ed-te-'+o.id+'">'+timeOptionsHTML(r.endTime||"")+'</select></div><div><div class="lbl2">Matériel</div>'+itemsEdit+'</div><button class="btn" onclick="saveEdit(\''+o.id+'\')">Enregistrer</button></div>';
+  const note2=o.adminNote?'<div style="margin-top:10px;font-size:13px;background:#fff8e6;border:1px solid #f2e2b3;border-radius:8px;padding:8px 10px">📝 '+esc(o.adminNote)+'</div>':'';
+  const noteEdit='<button class="linkbtn" style="margin-top:8px" onclick="toggleNote(\''+o.id+'\')">'+(o.adminNote?"Modifier la note":"Ajouter une note interne")+'</button><div class="hidden" id="note-'+o.id+'" style="margin-top:8px"><textarea class="field" id="noteval-'+o.id+'" placeholder="Note visible seulement par vous…" style="min-height:60px">'+esc(o.adminNote||"")+'</textarea><button class="btn" style="margin-top:6px" onclick="saveNote(\''+o.id+'\')">Enregistrer la note</button></div>';
   const L=t=>'<span style="color:var(--muted)">'+t+' </span>';
   return '<div class="panel" style="margin-bottom:16px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px"><b style="font-size:17px;font-family:Space Grotesk,sans-serif">'+esc(c.name||"—")+'</b>'+statusBadge(o.status||"en attente")+'</div>'
@@ -366,49 +389,62 @@ function orderCard(o){
     +L("Estimation :")+'<b>'+total+'</b><br>'
     +L("Contact :")+esc(c.phone||"—")+' · '+esc(c.email||"—")
     +(c.message?'<br>'+L("Message :")+esc(c.message):'')
-    +'</div>'+waBtn+actions+edit+'<button class="linkbtn" style="margin-top:8px;color:#b42318" onclick="deleteOrder(\''+o.id+'\')">Supprimer la demande</button></div>';
+    +'</div>'+note2+waBtn+actions+edit+noteEdit+'<button class="linkbtn" style="margin-top:8px;color:#b42318" onclick="deleteOrder(\''+o.id+'\')">Supprimer la demande</button></div>';
 }
 window.confirmOrder=function(id){
   const o=ordersById[id]; if(!o || o.status==="confirmée") return;
   if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"confirm"},o))}).catch(()=>{}); } // agenda + email en arrière-plan
-  o.status="confirmée"; renderOrders(currentOrders);                                    // bascule instantanée
+  o.status="confirmée"; writeAvailability(o); renderOrders(currentOrders);                                    // bascule instantanée
   updateDoc(doc(db,"orders",id),{status:"confirmée",confirmedAt:serverTimestamp()}).catch(e=>alert("Erreur d'enregistrement : "+(e.code||e.message)));
 };
 window.refuseOrder=function(id){
   if(!confirm("Refuser cette demande ? Le client en sera informé par email.")) return;
   const o=ordersById[id]; if(!o) return;
   if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"refuse"},o))}).catch(()=>{}); } // email de refus au client
-  o.status="refusée"; renderOrders(currentOrders);
+  o.status="refusée"; removeAvailability(id); renderOrders(currentOrders);
   updateDoc(doc(db,"orders",id),{status:"refusée",refusedAt:serverTimestamp()}).catch(e=>alert("Erreur d'enregistrement : "+(e.code||e.message)));
 };
 window.cancelOrder=function(id){
   const o=ordersById[id]; if(!o) return;
   if(!confirm("Annuler cette réservation ? L'agenda sera mis à jour et le client informé par email.")) return;
   if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"cancel"},o))}).catch(()=>{}); } // retire l'agenda + email au client
-  o.status="annulée"; renderOrders(currentOrders);
+  o.status="annulée"; removeAvailability(id); renderOrders(currentOrders);
   updateDoc(doc(db,"orders",id),{status:"annulée",canceledAt:serverTimestamp()}).catch(e=>alert("Erreur : "+(e.code||e.message)));
 };
 window.reopenOrder=function(id){
   const o=ordersById[id]; if(!o) return;
   if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"reopen",id:id})}).catch(()=>{}); } // retire l'agenda, sans email
-  o.status="en attente"; renderOrders(currentOrders);
+  o.status="en attente"; removeAvailability(id); renderOrders(currentOrders);
   updateDoc(doc(db,"orders",id),{status:"en attente"}).catch(e=>alert("Erreur : "+(e.code||e.message)));
 };
 window.toggleEdit=function(id){ const el=document.getElementById("edit-"+id); if(el) el.classList.toggle("hidden"); };
+window.toggleNote=function(id){ const el=document.getElementById("note-"+id); if(el) el.classList.toggle("hidden"); };
+window.saveNote=async function(id){
+  const o=ordersById[id]; if(!o) return;
+  const v=document.getElementById("noteval-"+id).value.trim();
+  try{ await updateDoc(doc(db,"orders",id),{adminNote:v}); }catch(e){ alert("Erreur : "+(e.code||e.message)); return; }
+  o.adminNote=v; renderOrders(currentOrders);
+};
 window.deleteOrder=function(id){
   const o=ordersById[id]; if(!o) return;
   if(!confirm("Supprimer définitivement cette demande ? Cette action est irréversible et la retire du tableau de bord.")) return;
   if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"reopen",id:id})}).catch(()=>{}); } // retire l'agenda éventuel, sans email au client
-  delete ordersById[id]; currentOrders=currentOrders.filter(x=>x.id!==id); renderOrders(currentOrders);
+  delete ordersById[id]; currentOrders=currentOrders.filter(x=>x.id!==id); removeAvailability(id); renderOrders(currentOrders);
   deleteDoc(doc(db,"orders",id)).catch(e=>alert("Erreur de suppression : "+(e.code||e.message)));
 };
 window.saveEdit=async function(id){
   const o=ordersById[id]; if(!o) return;
   const date=document.getElementById("ed-date-"+id).value, ts=document.getElementById("ed-ts-"+id).value, te=document.getElementById("ed-te-"+id).value;
   if(!date||!ts){ alert("Indiquez au moins la date et l'heure de début."); return; }
+  var newItems=[], tot=0, quote=false;
+  CONFIG.products.forEach(function(p){ var el=document.getElementById("edq-"+id+"-"+p.id); if(!el) return; var q=parseInt(el.value,10)||0; if(q>0){ newItems.push({id:p.id,name:p.name,quantity:q,price:(p.price==null?null:p.price)}); if(p.price==null) quote=true; else tot+=p.price*q; } });
+  if(!newItems.length){ alert("La demande doit contenir au moins un matériel."); return; }
+  if(newItems.length===1 && newItems[0].id==="powerhub"){ alert("Le PowerHub ne peut pas être seul."); return; }
+  var fee=(o.delivery&&o.delivery.fee)?o.delivery.fee:0;
   o.rental=Object.assign({},o.rental,{date:date,startTime:ts,endTime:te});
-  try{ await updateDoc(doc(db,"orders",id),{rental:o.rental}); }catch(e){ alert("Erreur : "+(e.code||e.message)); return; }
-  if(o.status==="confirmée" && CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"confirm"},o))}).catch(()=>{}); } // resynchronise l'agenda (dédupliqué)
+  o.items=newItems; o.estimatedTotal=tot+fee; o.hasQuoteItems=quote;
+  try{ await updateDoc(doc(db,"orders",id),{rental:o.rental,items:o.items,estimatedTotal:o.estimatedTotal,hasQuoteItems:quote}); }catch(e){ alert("Erreur : "+(e.code||e.message)); return; }
+  if(o.status==="confirmée"){ writeAvailability(o); if(CONFIG.catalogUrl){ fetch(CONFIG.catalogUrl,{method:"POST",mode:"no-cors",body:JSON.stringify(Object.assign({action:"confirm"},o))}).catch(()=>{}); } } // resync agenda + dispo
   renderOrders(currentOrders);
 };
 
@@ -463,6 +499,16 @@ function cyclePhoto(id,len){ photoIdx[id]=((photoIdx[id]||0)+1)%len; renderCatal
 function setPhoto(id,i){ photoIdx[id]=i; renderCatalog(); }
 function render(){ renderCatalog(); renderSummary(); }
 
+/* ---- DISPONIBILITÉ (anti-double-réservation) ---- */
+function writeAvailability(o){ if(!o||!o.id) return; try{ setDoc(doc(db,"availability",o.id),{date:(o.rental||{}).date||"",items:(o.items||[]).map(function(it){return it.id;})}).catch(function(){}); }catch(e){} }
+function removeAvailability(id){ if(!id) return; try{ deleteDoc(doc(db,"availability",id)).catch(function(){}); }catch(e){} }
+async function checkAvailability(date){
+  takenDate=date||null; takenIds=[];
+  if(!date) return;
+  try{ const snap=await getDocs(query(collection(db,"availability"), where("date","==",date))); snap.forEach(function(d){ ((d.data()||{}).items||[]).forEach(function(id){ if(takenIds.indexOf(id)===-1) takenIds.push(id); }); }); }catch(e){}
+  renderSummary();
+}
+
 /* ---- MES COMMANDES (client) ---- */
 function showBookingMain(show){ [".hero",".section-head","#grid","#demande"].forEach(function(s){ var el=document.querySelector(s); if(el) el.classList.toggle("hidden",!show); }); }
 window.showMine=async function(){ showBookingMain(false); $("done").classList.add("hidden"); $("myOrders").classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"}); await loadMyOrders(); };
@@ -495,10 +541,15 @@ function renderSummary(){
   const date=$("dEvent").value,ts=$("tStart").value,te=$("tEnd").value; let dt=""; if(date){ dt="Événement : "+fmt(date); if(ts) dt+=" · "+ts+(te?"–"+te:""); } else if(items.length) dt="Indiquez la date de votre événement."; $("sumDates").textContent=dt;
   if(!items.length) $("sumTotal").innerHTML="—"; else if(total>0) $("sumTotal").innerHTML=money(total)+(quote?' <small>+ sur devis</small>':''); else $("sumTotal").innerHTML="Sur devis";
   var onlyPh=items.length&&cart.powerhub&&items.filter(function(id){return id!=="powerhub";}).length===0;
-  var note=$("sumNote"); if(note){ if(onlyPh){ note.textContent="⚠ Le PowerHub ne se loue qu'en complément — ajoutez au moins un autre matériel."; note.style.color="#b42318"; } else { note.textContent="Montant indicatif, confirmé par DK Events. Votre demande sera examinée avant confirmation."; note.style.color=""; } }
+  var curDate=$("dEvent").value, conflicts=(curDate&&takenDate===curDate)?items.filter(function(id){return takenIds.indexOf(id)!==-1;}):[];
+  var warns=[];
+  if(onlyPh) warns.push("Le PowerHub ne se loue qu'en complément — ajoutez au moins un autre matériel.");
+  if(conflicts.length){ var cn=conflicts.map(function(id){var p=CONFIG.products.find(function(x){return x.id===id;});return p?p.name:id;}).join(", "); warns.push("Déjà réservé le "+fmt(curDate)+" : "+cn+". Choisissez une autre date."); }
+  var note=$("sumNote"); if(note){ if(warns.length){ note.innerHTML="⚠ "+warns.join("<br>⚠ "); note.style.color="#b42318"; } else { note.textContent="Montant indicatif, confirmé par DK Events. Votre demande sera examinée avant confirmation."; note.style.color=""; } }
 }
 function fmt(d){ return new Date(d).toLocaleDateString("fr-BE",{day:"2-digit",month:"long",year:"numeric"}); }
 ["dEvent","tStart","tEnd"].forEach(i=>$(i).addEventListener("change",renderSummary));
+$("dEvent").addEventListener("change",function(){ checkAvailability($("dEvent").value); });
 
 /* address autocomplete + km */
 let acItems=[],acTimer=null;
@@ -526,6 +577,7 @@ async function submitOrder(){
   if(!ts) return fail("Indiquez l'heure de début.");
   if(!items.length) return fail("Ajoutez au moins un matériel.");
   if(cart.powerhub && items.filter(id=>id!=="powerhub").length===0) return fail("Le PowerHub ne se loue qu'en complément d'une autre location. Ajoutez au moins un autre matériel à votre demande.");
+  try{ const asnap=await getDocs(query(collection(db,"availability"), where("date","==",date))); var taken=[]; asnap.forEach(function(d){ ((d.data()||{}).items||[]).forEach(function(id){ taken.push(id); }); }); var conf=items.filter(function(id){ return taken.indexOf(id)!==-1; }); if(conf.length){ var cn=conf.map(function(id){ var p=CONFIG.products.find(function(x){return x.id===id;}); return p?p.name:id; }).join(", "); return fail("Déjà réservé le "+fmt(date)+" : "+cn+". Merci de choisir une autre date."); } }catch(e){}
   let total=0,quote=false; items.forEach(id=>{ const p=CONFIG.products.find(x=>x.id===id); if(p.price==null) quote=true; else total+=p.price*cart[id]; });
   const del=(delivery&&!delivery.loading)?delivery:null; if(del&&!del.brussels) total+=del.fee;
   const order={
