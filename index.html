@@ -338,7 +338,7 @@ textarea.field{resize:vertical;min-height:88px}
 <a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
 
 <div id="lightbox" class="lb hidden" onclick="if(event.target===this)closeLightbox()"><div class="lb-box"><button class="lb-close" onclick="closeLightbox()" aria-label="Fermer">✕</button><div class="lb-media" id="lbMedia"></div><div class="lb-info" id="lbInfo"></div></div></div>
-<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v9 · 17-09</div>
+<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v10 · 17-09</div>
 <div id="cookieBanner" class="cookie-banner hidden">
   <div class="cookie-txt">Nous utilisons des cookies de mesure d'audience (Google Analytics) pour améliorer le site. Vous pouvez accepter ou refuser — aucun suivi n'est activé sans votre accord.</div>
   <div class="cookie-btns">
@@ -374,7 +374,7 @@ const CONFIG={
     {id:"evolite",name:"Evolite 3000P",category:"Effets",price:150,unit:"prestation · 1h",photos:PHOTOS.evolite,description:"Machine à fumée lourde 3000 W · nappe au sol jusqu'à 250 m²."},
     {id:"ghost",name:"Ghost",category:"Effets",price:150,unit:"prestation · 30 min",photos:PHOTOS.ghost,description:"Étincelles froides · 4 machines · sans flamme ni fumée."},
     {id:"pack",name:"Pack Fumée + Étincelles",category:"Pack",price:250,unit:"les deux prestations",photos:PHOTOS.pack,description:"Evolite 3000P + Ghost. 250 € au lieu de 300 €."},
-    {id:"powerhub",name:"PowerHub",category:"Énergie",price:null,unit:"sur devis",photos:PHOTOS.powerhub,description:"Station de powerbanks : vos invités rechargent toute la soirée."}
+    {id:"powerhub",name:"PowerHub",category:"Énergie",price:50,unit:"prestation",photos:PHOTOS.powerhub,description:"Station de powerbanks : vos invités rechargent toute la soirée."}
   ]
 };
 
@@ -636,11 +636,17 @@ function renderCatalog(){
       if(photos.length>1) media+=`<div class="dots">`+photos.map((_,i)=>`<span class="dot ${i===idx?"on":""}" onclick="setPhoto('${p.id}',${i})"></span>`).join("")+`</div>`;
     } else media=phSVG;
     media+=(bdg?`<span class="badge">${bdg}</span>`:"")+(photos.length?`<button class="zoom" onclick="openLightbox('${p.id}')" aria-label="Voir en grand">⤢</button>`:"");
-    const ctrl=q>0?`<div class="stepper"><button onclick="setQty('${p.id}',${q-1})">−</button><span class="qty">${q}</span><button onclick="setQty('${p.id}',${q+1})">+</button></div>`:`<button class="add" onclick="setQty('${p.id}',1)">Ajouter</button>`;
-    return `<article class="pcard ${q>0?'selected':''}"><div class="media">${media}</div><div class="body"><span class="cat">${p.category}</span><span class="name" onclick="openLightbox('${p.id}')" style="cursor:pointer">${p.name}</span><span class="desc">${p.description||""}</span>${p.note?`<div class="cond">${p.note}</div>`:""}<div class="foot"><span class="price">${priceTag(p)}</span>${ctrl}</div></div></article>`;
+    const lockPrx=(p.id==="prx915" && cart["dynacord"]>0);
+    const ctrl=q>0?`<div class="stepper"><button ${lockPrx&&q<=1?'disabled style="opacity:.35;cursor:not-allowed"':''} onclick="setQty('${p.id}',${q-1})">−</button><span class="qty">${q}</span><button onclick="setQty('${p.id}',${q+1})">+</button></div>`:`<button class="add" onclick="setQty('${p.id}',1)">Ajouter</button>`;
+    return `<article class="pcard ${q>0?'selected':''}"><div class="media">${media}</div><div class="body"><span class="cat">${p.category}</span><span class="name" onclick="openLightbox('${p.id}')" style="cursor:pointer">${p.name}</span><span class="desc">${p.description||""}</span>${p.note?`<div class="cond">${p.note}</div>`:""}${lockPrx?`<div class="cond" style="color:var(--ok)">Incluse avec le Dynacore 6000 CMS</div>`:""}<div class="foot"><span class="price">${priceTag(p)}</span>${ctrl}</div></div></article>`;
   }).join("");
 }
-function setQty(id,q){ if(q<=0) delete cart[id]; else cart[id]=q; render(); }
+function setQty(id,q){
+  if(id==="prx915" && q<=0 && cart["dynacord"]>0){ alert("La JBL PRX915 est incluse avec le Dynacore 6000 CMS. Retirez d'abord le Dynacore pour l'enlever."); return; }
+  if(q<=0){ delete cart[id]; } else { cart[id]=q; }
+  if(id==="dynacord" && cart["dynacord"]>0 && !cart["prx915"]){ cart["prx915"]=1; }
+  render();
+}
 function cyclePhoto(id,len){ photoIdx[id]=((photoIdx[id]||0)+1)%len; renderCatalog(); }
 function setPhoto(id,i){ photoIdx[id]=i; renderCatalog(); }
 function render(){ renderCatalog(); renderSummary(); renderMiniCart(); }
