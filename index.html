@@ -55,6 +55,7 @@ header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px so
 .hero{padding:44px 0 20px}
 .hero h1{font-size:clamp(28px,5vw,42px);font-weight:700;line-height:1.05;max-width:16ch}
 .hero p{color:var(--muted);margin-top:12px;max-width:56ch}
+.hero .lead{color:var(--ink);font-size:clamp(15px,2.2vw,18px);font-weight:500;line-height:1.55;margin-top:14px;max-width:62ch}
 .dates{margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
 .dates .grp{display:flex;flex-direction:column;gap:8px}.dates .grp label{font-size:13px;color:var(--muted)}.dates .grp .field{min-width:150px}
 .dates .hint{color:var(--muted);font-size:13px;flex:1;min-width:180px}
@@ -132,6 +133,12 @@ textarea.field{resize:vertical;min-height:88px}
 .sum-row{display:flex;justify-content:space-between;gap:12px;font-size:14.5px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .sum-row .l .n{font-weight:600}.sum-row .l .m{color:var(--muted);font-size:13px}.sum-row .p{white-space:nowrap}
 .sum-dates{color:var(--muted);font-size:13.5px;margin:14px 0 6px}
+.sum-when{margin:16px 0 8px;padding-top:16px;border-top:1px solid var(--line)}
+.sum-when .sw-title{font-size:13px;font-weight:600;margin-bottom:10px}
+.sum-when .sw-lbl{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+.sum-when .field{width:100%}
+.sum-when .sw-row{display:flex;gap:10px}
+.sum-when .sw-row>div{flex:1;min-width:0}
 .sum-total{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 4px}.sum-total .lbl{color:var(--muted);font-size:14px}.sum-total .val{font-size:26px;font-weight:700;font-family:"Space Grotesk",sans-serif}.sum-total .val small{font-size:12.5px;color:var(--muted);font-weight:500}
 .note{color:var(--muted);font-size:12.5px;margin:12px 0 18px;line-height:1.5}
 .submit-msg{min-height:20px;font-size:13.5px;margin-top:10px}.submit-msg.err{color:var(--danger)}
@@ -187,13 +194,8 @@ textarea.field{resize:vertical;min-height:88px}
   <main class="wrap">
     <section class="hero">
       <h1>Votre événement, notre matériel.</h1>
-      <p>Choisissez votre matériel et vos dates, puis envoyez votre demande — DK Events la confirme après vérification.</p>
-      <div class="dates">
-        <div class="grp"><label for="dEvent">Date de l'événement</label><input class="field" type="date" id="dEvent"></div>
-        <div class="grp"><label for="tStart">Heure de début</label><select class="field" id="tStart"></select></div>
-        <div class="grp"><label for="tEnd">Heure de fin</label><select class="field" id="tEnd"></select></div>
-        <div class="hint">La disponibilité est confirmée après l'envoi de votre demande.</div>
-      </div>
+      <p class="lead">DK Events loue du matériel événementiel professionnel à Bruxelles et dans le Benelux : sonorisation, machines à fumée, étincelles froides et powerbanks. Mariages, anniversaires, soirées ou événements d'entreprise — on vous équipe pour une ambiance réussie.</p>
+      <p>Choisissez votre matériel ci-dessous, ajoutez-le à votre sélection, puis envoyez votre demande : DK Events confirme la disponibilité après vérification.</p>
     </section>
     <div class="section-head"><h2>Le matériel</h2><span class="sub">Tarifs par prestation · Bruxelles (supplément km au-delà)</span></div>
     <div class="grid" id="grid"></div>
@@ -205,6 +207,9 @@ textarea.field{resize:vertical;min-height:88px}
           <div><label for="fPhone">Téléphone <span class="req">*</span></label><input class="field" id="fPhone" type="tel" placeholder="+32 ..."></div>
           <div class="full"><label for="fEmail">Email <span class="req">*</span></label><input class="field" id="fEmail" type="email" placeholder="vous@email.com"></div>
           <div class="full"><label for="fAddress">Lieu / adresse de l'événement</label><div class="ac"><input class="field" id="fAddress" type="text" placeholder="Commencez à taper l'adresse..." autocomplete="off"><div class="ac-list" id="acList"></div></div><div class="ac-hint" id="acHint">Choisissez une adresse dans la liste pour calculer la livraison.</div></div>
+          <div class="full"><label for="dEvent">Date de l'événement</label><input class="field" type="date" id="dEvent"></div>
+          <div><label for="tStart">Heure de début</label><select class="field" id="tStart"></select></div>
+          <div><label for="tEnd">Heure de fin</label><select class="field" id="tEnd"></select></div>
           <div class="full"><label for="fMsg">Message</label><textarea class="field" id="fMsg" placeholder="Type d'événement, nombre d'invités, précisions..."></textarea></div>
         </div>
       </div>
@@ -212,7 +217,6 @@ textarea.field{resize:vertical;min-height:88px}
         <h2>Ma sélection</h2><p class="sub">Récapitulatif de votre demande.</p>
         <div class="sum-list" id="sumList"></div>
         <div id="sumDelivery"></div>
-        <div class="sum-dates" id="sumDates"></div>
         <div class="sum-total"><span class="lbl">Estimation</span><span class="val" id="sumTotal">—</span></div>
         <p class="note" id="sumNote">Montant indicatif, confirmé par DK Events. Votre demande sera examinée avant confirmation.</p>
         <button class="btn" id="send" style="width:100%">Envoyer ma demande</button>
@@ -238,7 +242,7 @@ textarea.field{resize:vertical;min-height:88px}
 <a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
 
 <div id="lightbox" class="lb hidden" onclick="if(event.target===this)closeLightbox()"><div class="lb-box"><button class="lb-close" onclick="closeLightbox()">✕</button><div class="lb-media" id="lbMedia"></div><div class="lb-info" id="lbInfo"></div></div></div>
-<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v2 · 17-09</div>
+<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v4 · 17-09</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -256,17 +260,26 @@ const firebaseConfig = {
 };
 const fbapp=initializeApp(firebaseConfig), auth=getAuth(fbapp), db=getFirestore(fbapp);
 
+const PHOTOS={
+  prx915:["img/prx915-1.jpg","img/prx915-2.jpg","img/prx915-3.jpg","img/prx915-4.jpg"],
+  partybox720:["img/partybox720-1.jpg","img/partybox720-2.jpg","img/partybox720-3.jpg","img/partybox720-4.jpg"],
+  dynacord:["img/dynacord-1.jpg","img/dynacord-2.jpg"],
+  evolite:["img/evolite-1.jpg","img/evolite-2.jpg"],
+  ghost:["img/ghost-1.jpg","img/ghost-2.jpg","img/ghost-3.jpg"],
+  pack:["img/pack-1.jpg","img/pack-2.jpg"],
+  powerhub:["img/powerhub-1.jpg","img/powerhub-2.jpg"]
+};
 const CONFIG={
   currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", whatsapp:"32483495859", originLat:50.8339, originLng:4.3130, pricePerKm:1,
   catalogUrl:"https://script.google.com/macros/s/AKfycbzlhVSa9PXA1f7_R5AbhJimjXg1VOQ_EzGPrOqI527P7izkjK2Koe_yvEJ00YJzdletgA/exec",
   products:[
-    {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · jusqu'à 1h",photos:IMAGES.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
-    {id:"partybox720",name:"JBL PartyBox 720",category:"Sono",price:80,unit:"l'unité · 12h",photos:IMAGES.partybox720,description:"Enceinte Bluetooth sur batterie · 800 W RMS · jeu de lumières."},
-    {id:"dynacord",name:"Dynacore 6000 CMS",category:"Sono",price:50,unit:"prestation",photos:IMAGES.dynacord,description:"Console de mixage analogique · 6 entrées micro XLR.",note:"Uniquement avec les JBL PRX915"},
-    {id:"evolite",name:"Evolite 3000P",category:"Effets",price:150,unit:"prestation · 1h",photos:IMAGES.evolite,description:"Machine à fumée lourde 3000 W · nappe au sol jusqu'à 250 m²."},
-    {id:"ghost",name:"Ghost",category:"Effets",price:150,unit:"prestation · 30 min",photos:IMAGES.ghost,description:"Étincelles froides · 4 machines · sans flamme ni fumée."},
-    {id:"pack",name:"Pack Fumée + Étincelles",category:"Pack",price:250,unit:"les deux prestations",photos:IMAGES.pack,description:"Evolite 3000P + Ghost. 250 € au lieu de 300 €."},
-    {id:"powerhub",name:"PowerHub",category:"Énergie",price:null,unit:"sur devis",photos:IMAGES.powerhub,description:"Station de powerbanks : vos invités rechargent toute la soirée."}
+    {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · jusqu'à 1h",photos:PHOTOS.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
+    {id:"partybox720",name:"JBL PartyBox 720",category:"Sono",price:80,unit:"l'unité · 12h",photos:PHOTOS.partybox720,description:"Enceinte Bluetooth sur batterie · 800 W RMS · jeu de lumières."},
+    {id:"dynacord",name:"Dynacore 6000 CMS",category:"Sono",price:50,unit:"prestation",photos:PHOTOS.dynacord,description:"Console de mixage analogique · 6 entrées micro XLR.",note:"Uniquement avec les JBL PRX915"},
+    {id:"evolite",name:"Evolite 3000P",category:"Effets",price:150,unit:"prestation · 1h",photos:PHOTOS.evolite,description:"Machine à fumée lourde 3000 W · nappe au sol jusqu'à 250 m²."},
+    {id:"ghost",name:"Ghost",category:"Effets",price:150,unit:"prestation · 30 min",photos:PHOTOS.ghost,description:"Étincelles froides · 4 machines · sans flamme ni fumée."},
+    {id:"pack",name:"Pack Fumée + Étincelles",category:"Pack",price:250,unit:"les deux prestations",photos:PHOTOS.pack,description:"Evolite 3000P + Ghost. 250 € au lieu de 300 €."},
+    {id:"powerhub",name:"PowerHub",category:"Énergie",price:null,unit:"sur devis",photos:PHOTOS.powerhub,description:"Station de powerbanks : vos invités rechargent toute la soirée."}
   ]
 };
 
@@ -557,7 +570,6 @@ function renderSummary(){
   let total=0,quote=false; items.forEach(id=>{ const p=CONFIG.products.find(x=>x.id===id); if(p.price==null) quote=true; else total+=p.price*cart[id]; });
   let dH=""; if(delivery&&items.length){ if(delivery.loading) dH='<div class="sum-row"><div class="l"><div class="n">Livraison</div><div class="m">calcul…</div></div><div class="p">…</div></div>'; else if(delivery.brussels) dH='<div class="sum-row"><div class="l"><div class="n">Livraison</div><div class="m">Bruxelles — sans supplément</div></div><div class="p">Inclus</div></div>'; else { dH='<div class="sum-row"><div class="l"><div class="n">Livraison</div><div class="m">'+delivery.km+' km A/R · '+money(CONFIG.pricePerKm)+'/km</div></div><div class="p">'+money(delivery.fee)+'</div></div>'; total+=delivery.fee; } }
   $("sumDelivery").innerHTML=dH;
-  const date=$("dEvent").value,ts=$("tStart").value,te=$("tEnd").value; let dt=""; if(date){ dt="Événement : "+fmt(date); if(ts) dt+=" · "+ts+(te?"–"+te:""); } else if(items.length) dt="Indiquez la date de votre événement."; $("sumDates").textContent=dt;
   if(!items.length) $("sumTotal").innerHTML="—"; else if(total>0) $("sumTotal").innerHTML=money(total)+(quote?' <small>+ sur devis</small>':''); else $("sumTotal").innerHTML="Sur devis";
   var onlyPh=items.length&&cart.powerhub&&items.filter(function(id){return id!=="powerhub";}).length===0;
   var curDate=$("dEvent").value, conflicts=(curDate&&takenDate===curDate)?items.filter(function(id){return takenIds.indexOf(id)!==-1;}):[];
@@ -620,7 +632,7 @@ function fail(t){ const m=$("sendMsg"); m.className="submit-msg err"; m.textCont
 $("restart").addEventListener("click",()=>{ Object.keys(cart).forEach(k=>delete cart[k]); delivery=null; ["fPhone","fAddress","fMsg","dEvent","tStart","tEnd"].forEach(i=>$(i).value=""); $("acHint").textContent="Choisissez une adresse dans la liste pour calculer la livraison."; $("done").classList.add("hidden"); document.querySelector(".request").classList.remove("hidden"); document.querySelector(".section-head").classList.remove("hidden"); $("grid").classList.remove("hidden"); document.querySelector(".hero").classList.remove("hidden"); render(); window.scrollTo({top:0,behavior:"smooth"}); });
 
 /* catalogue live (Sheet, JSONP) */
-window.__onCatalog=function(res){ if(res&&res.products&&res.products.length){ CONFIG.products=res.products.map(p=>{ let urls=String(p.photo||"").split(/[\n,|]+/).map(s=>s.trim()).filter(Boolean); if(!urls.length&&IMAGES[p.id]) urls=[].concat(IMAGES[p.id]); return Object.assign({},p,{photos:urls}); }); render(); } };
+window.__onCatalog=function(res){ if(res&&res.products&&res.products.length){ CONFIG.products=res.products.map(p=>{ let urls=String(p.photo||"").split(/[\n,|]+/).map(s=>s.trim()).filter(Boolean); if(!urls.length&&PHOTOS[p.id]) urls=[].concat(PHOTOS[p.id]); return Object.assign({},p,{photos:urls}); }); render(); } };
 function loadCatalog(){ if(!CONFIG.catalogUrl) return; const s=document.createElement("script"); s.src=CONFIG.catalogUrl+"?callback=__onCatalog&t="+Date.now(); document.head.appendChild(s); }
 
 /* expose pour les onclick inline */
@@ -644,7 +656,7 @@ function renderLightbox(){
   else media='<div style="color:#999;padding:50px">Pas de photo</div>';
   document.getElementById("lbMedia").innerHTML=media;
   var price=p.price==null?'Sur devis':(money(p.price)+' <span style="font-weight:400;color:var(--muted);font-size:14px">'+esc(p.unit||"")+'</span>');
-  var full=DESC[lbId];
+  var full=(p.details&&String(p.details).trim())?String(p.details):DESC[lbId];
   var body=full?('<div class="lb-spec">'+esc(p.description||"")+'</div><p>'+esc(full).replace(/\n/g,"<br>").replace(/\* /g,"• ")+'</p>'):('<p>'+esc(p.description||"")+'</p>');
   document.getElementById("lbInfo").innerHTML='<span class="lb-cat">'+esc(p.category||"")+'</span><h3>'+esc(p.name)+'</h3>'+body+(p.note?'<p style="color:var(--danger);font-size:13px">'+esc(p.note)+'</p>':'')+'<div class="lb-price">'+price+'</div>';
 }
