@@ -69,7 +69,7 @@ input,button,textarea{font:inherit;color:inherit}
 .stat span{font-size:12px;color:var(--muted)}
 /* BOOKING */
 header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px;position:relative}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:64px;position:relative}
 .top .brand{font-size:18px;text-align:left}.top .brand small{letter-spacing:.18em}
 .acct{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
 .linkbtn{background:none;border:none;color:var(--text);font-weight:600;cursor:pointer;font-size:13px;text-decoration:underline}
@@ -86,9 +86,22 @@ header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px so
 .foot-cta .ico{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;background:var(--surface);color:var(--ink)}
 .foot-cta .ico:hover{background:var(--bg-2)}
 .foot-cta .ico svg{width:22px;height:22px}
-.mainnav{display:flex;gap:22px;flex:1 1 auto;flex-wrap:wrap;justify-content:center}
+.nav-panel{display:flex;align-items:center;gap:26px;flex:1 1 auto;justify-content:space-between}
+.mainnav{display:flex;gap:22px}
 .mainnav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:600}
 .mainnav a:hover{opacity:.55}
+.nav-acct{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+.top-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--ink)}
+.hamburger svg{width:26px;height:26px}
+@media(max-width:860px){
+  .hamburger{display:flex}
+  .nav-panel{position:absolute;top:100%;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 14px 30px rgba(0,0,0,.1);flex-direction:column;align-items:stretch;gap:0;padding:6px 22px 16px;display:none;z-index:240}
+  .nav-panel.open{display:flex}
+  .mainnav{flex-direction:column;gap:0}
+  .mainnav a{padding:13px 2px;border-bottom:1px solid var(--line);font-size:15px}
+  .nav-acct{flex-direction:column;align-items:flex-start;gap:12px;padding-top:14px}
+}
 .cart-btn{position:relative;background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;color:var(--ink)}
 .cart-btn svg{width:24px;height:24px}
 .cart-count{position:absolute;top:-2px;right:-4px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
@@ -254,17 +267,22 @@ textarea.field{resize:vertical;min-height:88px}
 <div id="bookingView" class="hidden">
   <header class="top"><div class="wrap">
     <img class="logo-sm" id="brandLogoBook" alt="DK Events">
-    <nav class="mainnav">
-      <a href="#apropos" onclick="navTo(event,'apropos')">À propos de nous</a>
-      <a href="#materiel" onclick="navTo(event,'materiel')">Notre matériel</a>
-      <a href="#demande" onclick="navTo(event,'demande')">Ma commande</a>
-      <a href="#contact" onclick="navTo(event,'contact')">Contact</a>
-    </nav>
-    <div class="acct">
+    <div class="nav-panel" id="navPanel">
+      <nav class="mainnav">
+        <a href="#apropos" onclick="navTo(event,'apropos')">À propos de nous</a>
+        <a href="#materiel" onclick="navTo(event,'materiel')">Notre matériel</a>
+        <a href="#demande" onclick="navTo(event,'demande')">Ma commande</a>
+        <a href="#contact" onclick="navTo(event,'contact')">Contact</a>
+      </nav>
+      <div class="nav-acct">
+        <button class="linkbtn hidden" id="btnMine" onclick="showMine()">Mes commandes</button>
+        <span id="acctLabel"></span>
+        <button class="linkbtn" id="btnAcct"></button>
+      </div>
+    </div>
+    <div class="top-right">
       <button class="cart-btn" id="cartBtn" onclick="toggleCart(event)" aria-label="Voir ma sélection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span class="cart-count" id="cartCount" style="display:none">0</span></button>
-      <button class="linkbtn hidden" id="btnMine" onclick="showMine()">Mes commandes</button>
-      <span id="acctLabel"></span>
-      <button class="linkbtn" id="btnAcct"></button>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu(event)" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </div>
     <div class="cart-drop hidden" id="cartDrop"></div>
   </div></header>
@@ -338,7 +356,7 @@ textarea.field{resize:vertical;min-height:88px}
 <a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
 
 <div id="lightbox" class="lb hidden" onclick="if(event.target===this)closeLightbox()"><div class="lb-box"><button class="lb-close" onclick="closeLightbox()" aria-label="Fermer">✕</button><div class="lb-media" id="lbMedia"></div><div class="lb-info" id="lbInfo"></div></div></div>
-<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v11 · 17-09</div>
+<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v12 · 17-09</div>
 <div id="cookieBanner" class="cookie-banner hidden">
   <div class="cookie-txt">Nous utilisons des cookies de mesure d'audience (Google Analytics) pour améliorer le site. Vous pouvez accepter ou refuser — aucun suivi n'est activé sans votre accord.</div>
   <div class="cookie-btns">
@@ -652,7 +670,7 @@ function setPhoto(id,i){ photoIdx[id]=i; renderCatalog(); }
 function render(){ renderCatalog(); renderSummary(); renderMiniCart(); }
 
 /* ---- NAVIGATION + PANIER ---- */
-window.navTo=function(e,id){ if(e) e.preventDefault(); var mo=$("myOrders"); if(mo && !mo.classList.contains("hidden")){ mo.classList.add("hidden"); showBookingMain(true); } var el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); var d=$("cartDrop"); if(d) d.classList.add("hidden"); };
+window.navTo=function(e,id){ if(e) e.preventDefault(); var np=$("navPanel"); if(np) np.classList.remove("open"); var mo=$("myOrders"); if(mo && !mo.classList.contains("hidden")){ mo.classList.add("hidden"); showBookingMain(true); } var el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); var d=$("cartDrop"); if(d) d.classList.add("hidden"); };
 function renderMiniCart(){
   var items=Object.keys(cart), count=items.reduce(function(s,id){return s+cart[id];},0);
   var cc=$("cartCount"); if(cc){ cc.textContent=count; cc.style.display=count>0?"flex":"none"; }
@@ -665,7 +683,8 @@ function renderMiniCart(){
 }
 window.toggleCart=function(e){ if(e){ e.preventDefault(); e.stopPropagation(); } var d=$("cartDrop"); if(d) d.classList.toggle("hidden"); };
 window.cartFinalize=function(){ var d=$("cartDrop"); if(d) d.classList.add("hidden"); var mo=$("myOrders"); if(mo && !mo.classList.contains("hidden")){ mo.classList.add("hidden"); showBookingMain(true); } var el=$("demande"); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); };
-document.addEventListener("click",function(e){ var d=$("cartDrop"),b=$("cartBtn"); if(d && !d.classList.contains("hidden") && !d.contains(e.target) && b && !b.contains(e.target)) d.classList.add("hidden"); });
+window.toggleMenu=function(e){ if(e) e.stopPropagation(); var p=$("navPanel"); if(p) p.classList.toggle("open"); };
+document.addEventListener("click",function(e){ var d=$("cartDrop"),b=$("cartBtn"); if(d && !d.classList.contains("hidden") && !d.contains(e.target) && b && !b.contains(e.target)) d.classList.add("hidden"); var np=$("navPanel"),h=$("hamburger"); if(np && np.classList.contains("open") && !np.contains(e.target) && h && !h.contains(e.target)) np.classList.remove("open"); });
 
 /* ---- DISPONIBILITÉ (anti-double-réservation) ---- */
 function writeAvailability(o){ if(!o||!o.id) return; try{ setDoc(doc(db,"availability",o.id),{date:(o.rental||{}).date||"",items:(o.items||[]).map(function(it){return it.id;})}).catch(function(){}); }catch(e){} }
@@ -679,7 +698,7 @@ async function checkAvailability(date){
 
 /* ---- MES COMMANDES (client) ---- */
 function showBookingMain(show){ [".hero","#apropos",".section-head","#grid","#demande"].forEach(function(s){ var el=document.querySelector(s); if(el) el.classList.toggle("hidden",!show); }); }
-window.showMine=async function(){ showBookingMain(false); $("done").classList.add("hidden"); $("myOrders").classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"}); await loadMyOrders(); };
+window.showMine=async function(){ var np=$("navPanel"); if(np) np.classList.remove("open"); showBookingMain(false); $("done").classList.add("hidden"); $("myOrders").classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"}); await loadMyOrders(); };
 window.hideMine=function(){ $("myOrders").classList.add("hidden"); showBookingMain(true); window.scrollTo({top:0,behavior:"smooth"}); };
 function tms(o){ var t=o.createdAt; if(t&&t.seconds) return t.seconds*1000; if(t&&t.toMillis){ try{return t.toMillis();}catch(e){} } return 0; }
 async function loadMyOrders(){
