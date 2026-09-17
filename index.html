@@ -73,6 +73,12 @@ header.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px so
 .hero h1{font-size:clamp(28px,5vw,42px);font-weight:700;line-height:1.05;max-width:16ch}
 .hero p{color:var(--muted);margin-top:12px;max-width:56ch}
 .hero .lead{color:var(--ink);font-size:clamp(15px,2.2vw,18px);font-weight:500;line-height:1.55;margin-top:14px;max-width:62ch}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.site-footer{margin:60px 0 24px;padding:38px 0 10px;border-top:1px solid var(--line);text-align:center}
+.site-footer .foot-brand{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:22px}
+.site-footer .foot-tag{color:var(--muted);font-size:14px;margin-top:6px}
+.site-footer .foot-desc{color:var(--muted);font-size:14px;margin:10px auto 0;max-width:46ch}
+.site-footer .foot-cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
 .dates{margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
 .dates .grp{display:flex;flex-direction:column;gap:8px}.dates .grp label{font-size:13px;color:var(--muted)}.dates .grp .field{min-width:150px}
 .dates .hint{color:var(--muted);font-size:13px;flex:1;min-width:180px}
@@ -213,6 +219,10 @@ textarea.field{resize:vertical;min-height:88px}
       <h1>Votre événement, notre matériel.</h1>
       <p class="lead">DK Events loue du matériel événementiel professionnel à Bruxelles et dans le Benelux : sonorisation, machines à fumée, étincelles froides et powerbanks. Mariages, anniversaires, soirées ou événements d'entreprise — on vous équipe pour une ambiance réussie.</p>
       <p>Choisissez votre matériel ci-dessous, ajoutez-le à votre sélection, puis envoyez votre demande : DK Events confirme la disponibilité après vérification.</p>
+      <div class="hero-cta">
+        <button class="btn" onclick="document.getElementById('grid').scrollIntoView({behavior:'smooth'})">Voir le matériel</button>
+        <a class="btn btn-ghost" id="heroWa" target="_blank" rel="noopener">Une question ? Écrivez-nous</a>
+      </div>
     </section>
     <div class="section-head"><h2>Le matériel</h2><span class="sub">Tarifs par prestation · Bruxelles (supplément km au-delà)</span></div>
     <div class="grid" id="grid"></div>
@@ -253,13 +263,23 @@ textarea.field{resize:vertical;min-height:88px}
       </div>
       <div id="myList"></div>
     </section>
+    <footer class="site-footer">
+      <div class="foot-brand">DK Events</div>
+      <p class="foot-tag">Location de matériel événementiel · Bruxelles &amp; Benelux</p>
+      <p class="foot-desc">Une question, un devis ou une date à vérifier ? Contactez-nous directement.</p>
+      <div class="foot-cta">
+        <a class="btn" id="footWa" target="_blank" rel="noopener">Contactez-nous sur WhatsApp</a>
+        <a class="btn btn-ghost" href="https://instagram.com/dk_events_belgium" target="_blank" rel="noopener">Instagram</a>
+        <a class="btn btn-ghost" href="tel:+32483495859">+32 483 49 58 59</a>
+      </div>
+    </footer>
   </main>
 </div>
 
 <a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
 
 <div id="lightbox" class="lb hidden" onclick="if(event.target===this)closeLightbox()"><div class="lb-box"><button class="lb-close" onclick="closeLightbox()" aria-label="Fermer">✕</button><div class="lb-media" id="lbMedia"></div><div class="lb-info" id="lbInfo"></div></div></div>
-<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v6 · 17-09</div>
+<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v7 · 17-09</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -300,6 +320,7 @@ const cart={}, photoIdx={}; let delivery=null, ordersById={}, currentOrders=[], 
 ["brandLogoAuth","brandLogoBook","brandLogoAdmin"].forEach(function(id){ var el=document.getElementById(id); if(el) el.src=IMAGES.logo; });
 ["igAuth","igBook"].forEach(function(id){ var el=document.getElementById(id); if(el) el.href=CONFIG.instagramUrl; });
 var _waf=document.getElementById("waFloat"); if(_waf) _waf.href="https://wa.me/"+CONFIG.whatsapp;
+["heroWa","footWa"].forEach(function(id){ var el=document.getElementById(id); if(el) el.href="https://wa.me/"+CONFIG.whatsapp; });
 function timeOptionsHTML(sel){ var s='<option value="">-- heure --</option>'; for(var h=0;h<24;h++){ for(var m=0;m<60;m+=30){ var t=(h<10?"0":"")+h+":"+(m<10?"0":"")+m; s+='<option value="'+t+'"'+(t===sel?' selected':'')+'>'+t+'</option>'; } } return s; }
 $("tStart").innerHTML=timeOptionsHTML(""); $("tEnd").innerHTML=timeOptionsHTML("");
 
