@@ -242,7 +242,7 @@ textarea.field{resize:vertical;min-height:88px}
 <a id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Contacter sur WhatsApp" class="wa-float hidden"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.42 1.31-1.95 1.36-.5.05-.95.24-3.2-.67-2.71-1.07-4.44-3.86-4.57-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.95-2.25.24-.27.52-.34.7-.34.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.58.81 2.01.88 2.16.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.36-.42.48-.14.14-.28.29-.12.56.16.27.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.22 1.38.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.75 1.85.89.27.14.45.2.52.31.07.12.07.68-.17 1.36z"/></svg></a>
 
 <div id="lightbox" class="lb hidden" onclick="if(event.target===this)closeLightbox()"><div class="lb-box"><button class="lb-close" onclick="closeLightbox()">✕</button><div class="lb-media" id="lbMedia"></div><div class="lb-info" id="lbInfo"></div></div></div>
-<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v4 · 17-09</div>
+<div style="position:fixed;left:8px;bottom:6px;z-index:500;font-size:11px;color:#8a8a8a;opacity:.7;pointer-events:none;font-family:monospace">v5 · 17-09</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -260,15 +260,7 @@ const firebaseConfig = {
 };
 const fbapp=initializeApp(firebaseConfig), auth=getAuth(fbapp), db=getFirestore(fbapp);
 
-const PHOTOS={
-  prx915:["img/prx915-1.jpg","img/prx915-2.jpg","img/prx915-3.jpg","img/prx915-4.jpg"],
-  partybox720:["img/partybox720-1.jpg","img/partybox720-2.jpg","img/partybox720-3.jpg","img/partybox720-4.jpg"],
-  dynacord:["img/dynacord-1.jpg","img/dynacord-2.jpg"],
-  evolite:["img/evolite-1.jpg","img/evolite-2.jpg"],
-  ghost:["img/ghost-1.jpg","img/ghost-2.jpg","img/ghost-3.jpg"],
-  pack:["img/pack-1.jpg","img/pack-2.jpg"],
-  powerhub:["img/powerhub-1.jpg","img/powerhub-2.jpg"]
-};
+const PHOTOS=IMAGES;
 const CONFIG={
   currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", whatsapp:"32483495859", originLat:50.8339, originLng:4.3130, pricePerKm:1,
   catalogUrl:"https://script.google.com/macros/s/AKfycbzlhVSa9PXA1f7_R5AbhJimjXg1VOQ_EzGPrOqI527P7izkjK2Koe_yvEJ00YJzdletgA/exec",
