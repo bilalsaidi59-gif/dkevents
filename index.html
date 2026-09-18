@@ -385,7 +385,7 @@ const CONFIG={
   currency:"€", instagramUrl:"https://instagram.com/dk_events_belgium", whatsapp:"32483495859", originLat:50.8339, originLng:4.3130, pricePerKm:1,
   catalogUrl:"https://script.google.com/macros/s/AKfycbzlhVSa9PXA1f7_R5AbhJimjXg1VOQ_EzGPrOqI527P7izkjK2Koe_yvEJ00YJzdletgA/exec",
   products:[
-    {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · jusqu'à 1h",photos:PHOTOS.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
+    {id:"prx915",name:"JBL PRX915",category:"Sono",price:150,unit:"la paire · 6h de prestation",photos:PHOTOS.prx915,description:"Enceinte amplifiée 15\" · 2 × 1000 W RMS · 133 dB · DSP dbx."},
     {id:"partybox720",name:"JBL PartyBox 720",category:"Sono",price:80,unit:"l'unité · 12h",photos:PHOTOS.partybox720,description:"Enceinte Bluetooth sur batterie · 800 W RMS · jeu de lumières."},
     {id:"dynacord",name:"Dynacore 6000 CMS",category:"Sono",price:50,unit:"prestation",photos:PHOTOS.dynacord,description:"Console de mixage analogique · 6 entrées micro XLR.",note:"Uniquement avec les JBL PRX915"},
     {id:"evolite",name:"Evolite 3000P",category:"Effets",price:150,unit:"prestation · 1h",photos:PHOTOS.evolite,description:"Machine à fumée lourde 3000 W · nappe au sol jusqu'à 250 m²."},
@@ -649,8 +649,8 @@ function renderCatalog(){
   $("grid").innerHTML=CONFIG.products.filter(p=>p.active!==false).map(p=>{
     const q=cart[p.id]||0, bdg=p.badge||(p.category==="Pack"?"Pack":""), photos=p.photos||(p.photo?[p.photo]:[]);
     const idx=Math.min(photoIdx[p.id]||0,Math.max(0,photos.length-1)); let media;
-    if(photos.length){ media=`<img src="${photos[idx]}" alt="${p.name}" onclick="openLightbox('${p.id}')" style="cursor:zoom-in">`;
-      if(photos.length>1) media+=`<div class="dots">`+photos.map((_,i)=>`<span class="dot ${i===idx?"on":""}" onclick="setPhoto('${p.id}',${i})"></span>`).join("")+`</div>`;
+    if(photos.length){ media=`<img id="cimg-${p.id}" src="${photos[idx]}" alt="${p.name}" onclick="openLightbox('${p.id}')" style="cursor:zoom-in">`;
+      if(photos.length>1) media+=`<div class="dots" id="dots-${p.id}">`+photos.map((_,i)=>`<span class="dot ${i===idx?"on":""}" onclick="setPhoto('${p.id}',${i})"></span>`).join("")+`</div>`;
     } else media=phSVG;
     media+=(bdg?`<span class="badge">${bdg}</span>`:"")+(photos.length?`<button class="zoom" onclick="openLightbox('${p.id}')" aria-label="Voir en grand">⤢</button>`:"");
     const lockPrx=(p.id==="prx915" && cart["dynacord"]>0);
@@ -667,6 +667,7 @@ function setQty(id,q){
 function cyclePhoto(id,len){ photoIdx[id]=((photoIdx[id]||0)+1)%len; renderCatalog(); }
 function setPhoto(id,i){ photoIdx[id]=i; renderCatalog(); }
 function render(){ renderCatalog(); renderSummary(); renderMiniCart(); }
+setInterval(function(){ if(!CONFIG.products) return; CONFIG.products.forEach(function(p){ var photos=p.photos||(p.photo?[p.photo]:[]); if(photos.length<2) return; var img=document.getElementById("cimg-"+p.id); if(!img) return; var idx=((photoIdx[p.id]||0)+1)%photos.length; photoIdx[p.id]=idx; img.src=photos[idx]; var dots=document.getElementById("dots-"+p.id); if(dots){ var sp=dots.children; for(var k=0;k<sp.length;k++){ sp[k].className="dot"+(k===idx?" on":""); } } }); }, 3500);
 
 /* ---- NAVIGATION + PANIER ---- */
 window.navTo=function(e,id){ if(e) e.preventDefault(); var np=$("navPanel"); if(np) np.classList.remove("open"); var mo=$("myOrders"); if(mo && !mo.classList.contains("hidden")){ mo.classList.add("hidden"); showBookingMain(true); } var el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); var d=$("cartDrop"); if(d) d.classList.add("hidden"); };
