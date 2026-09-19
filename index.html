@@ -240,7 +240,7 @@ textarea.field{resize:vertical;min-height:88px}
   <main class="wrap" style="padding:30px 22px 60px">
     <h1 style="font-size:26px;margin-bottom:16px">Demandes de réservation</h1>
     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px"><button class="btn" id="btnNewOrder" onclick="toggleNewOrder()">+ Nouvel événement</button><button class="btn" id="btnNewClient" onclick="toggleNewClient()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">+ Nouveau client</button><button class="btn" id="btnNewSalle" onclick="toggleNewSalle()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">+ Nouvelle salle</button><button class="btn" id="btnCarnet" onclick="toggleCarnet()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">📇 Carnet</button></div>
-    <div id="carnetBody" class="neworder hidden"></div><div id="newClientForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouveau client — crée un compte et envoie l'invitation par email</div><div class="no-grid"><div><label>Nom du client *</label><input class="field" id="ncName" type="text"></div><div><label>Email * (reçoit l'invitation)</label><input class="field" id="ncEmail" type="email"></div><div><label>Téléphone</label><input class="field" id="ncPhone" type="tel"></div><div><label>Adresse</label><input class="field" id="ncAddr" type="text"></div></div><button class="btn" onclick="createClient()" style="margin-top:14px">Créer le compte + inviter</button><span id="ncOut" style="margin-left:12px;font-size:13px"></span></div><div id="newSalleForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouvelle salle / prospect</div><div class="no-grid"><div><label>Nom de la salle *</label><input class="field" id="nsName" type="text"></div><div><label>Email</label><input class="field" id="nsEmail" type="email"></div><div><label>Adresse</label><input class="field" id="nsAddr" type="text"></div><div><label>Notes</label><input class="field" id="nsNotes" type="text"></div></div><button class="btn" onclick="createSalle()" style="margin-top:14px">Enregistrer la salle</button><span id="nsOut" style="margin-left:12px;font-size:13px"></span></div><div id="newOrderForm" class="neworder hidden"><div style="margin-bottom:12px"><label>Client existant</label><select class="field" id="noClientPick" onchange="pickClient(this.value)"><option value="">— Nouveau client / saisie manuelle —</option></select></div>
+    <div id="carnetBody" class="neworder hidden"></div><div id="newClientForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouveau client — crée un compte et envoie l'invitation par email</div><div class="no-grid"><div><label>Nom du client *</label><input class="field" id="ncName" type="text"></div><div><label>Email * (reçoit l'invitation)</label><input class="field" id="ncEmail" type="email"></div><div><label>Téléphone *</label><input class="field" id="ncPhone" type="tel"></div><div><label>Adresse</label><input class="field" id="ncAddr" type="text"></div></div><button class="btn" onclick="createClient()" style="margin-top:14px">Créer le compte + inviter</button><span id="ncOut" style="margin-left:12px;font-size:13px"></span></div><div id="newSalleForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouvelle salle / prospect</div><div class="no-grid"><div><label>Nom de la salle *</label><input class="field" id="nsName" type="text"></div><div><label>Email</label><input class="field" id="nsEmail" type="email"></div><div><label>Adresse</label><input class="field" id="nsAddr" type="text"></div><div><label>Notes</label><input class="field" id="nsNotes" type="text"></div></div><button class="btn" onclick="createSalle()" style="margin-top:14px">Enregistrer la salle</button><span id="nsOut" style="margin-left:12px;font-size:13px"></span></div><div id="newOrderForm" class="neworder hidden"><div style="margin-bottom:12px"><label>Client existant</label><select class="field" id="noClientPick" onchange="pickClient(this.value)"><option value="">— Nouveau client / saisie manuelle —</option></select></div>
       <div class="no-grid">
         <div><label>Nom du client *</label><input class="field" id="noName" type="text"></div>
         <div><label>Téléphone *</label><input class="field" id="noPhone" type="tel"></div>
@@ -271,6 +271,7 @@ textarea.field{resize:vertical;min-height:88px}
     <div class="nav-panel" id="navPanel">
       <nav class="mainnav">
         <a href="#apropos" onclick="navTo(event,'apropos')">À propos de nous</a>
+        <a href="#realisations" onclick="navTo(event,'realisations')">Réalisations</a>
         <a href="#materiel" onclick="navTo(event,'materiel')">Notre matériel</a>
         <a href="#demande" onclick="navTo(event,'demande')">Ma commande</a>
         <a href="#contact" onclick="navTo(event,'contact')">Contact</a>
@@ -301,6 +302,17 @@ textarea.field{resize:vertical;min-height:88px}
       <h2>À propos de nous</h2>
       <p>DK Events est votre partenaire pour la location de matériel événementiel dans le Benelux. Passionnés par la fête et les moments réussis, nous mettons à votre disposition du matériel professionnel — sonorisation, effets de fumée et d'étincelles, powerbanks — accompagné de conseils personnalisés.</p>
       <p>Du simple anniversaire au grand événement d'entreprise, notre objectif est simple : que votre soirée sonne juste, brille et marque les esprits, sans stress pour vous. Demandez votre matériel en ligne, nous confirmons la disponibilité et nous vous accompagnons jusqu'au jour J.</p>
+    </section>
+    <section id="realisations" style="margin:6px 0 34px">
+      <div style="background:linear-gradient(135deg,#feda75 0%,#fa7e1e 22%,#d62976 55%,#962fbf 78%,#4f5bd5 100%);border-radius:20px;padding:36px 26px;text-align:center;color:#fff;box-shadow:0 12px 34px rgba(214,41,118,.28)">
+        <div style="font-size:36px;line-height:1;margin-bottom:8px">📸</div>
+        <h2 style="color:#fff;margin:0 0 12px;font-size:27px;letter-spacing:-.3px">Nos réalisations en vrai</h2>
+        <p style="color:#fff;opacity:.96;max-width:580px;margin:0 auto 22px;font-size:15.5px;line-height:1.55">Nos prestations et les rendus chez nos clients — sonorisation, machines à fumée, étincelles froides — sont à découvrir sur notre Instagram. C'est là qu'on partage nos plus beaux événements&nbsp;!</p>
+        <a href="https://instagram.com/dk_events_belgium" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:#161616;font-weight:700;padding:14px 26px;border-radius:12px;text-decoration:none;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.15)">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>
+          Voir sur Instagram · @dk_events_belgium
+        </a>
+      </div>
     </section>
     <div class="section-head" id="materiel"><h2>Le matériel</h2><span class="sub">Tarifs par prestation · Bruxelles (supplément km au-delà)</span></div>
     <div class="grid" id="grid"></div>
@@ -422,7 +434,7 @@ function setMode(m){ mode=m; msg(""); $("tabLogin").classList.toggle("on",m==="l
 $("btnSubmit").addEventListener("click",async()=>{
   msg(""); const email=$("email").value.trim(), pw=$("pw").value; $("btnSubmit").disabled=true;
   try{
-    if(mode==="signup"){ const name=$("name").value.trim(), phone=$("signupPhone").value.trim(); if(!name){ msg("Indiquez votre nom.",true); $("btnSubmit").disabled=false; return; } if(!phone){ msg("Indiquez votre numéro de téléphone.",true); $("btnSubmit").disabled=false; return; }
+    if(mode==="signup"){ const name=$("name").value.trim(), phone=$("signupPhone").value.trim(); if(!name){ msg("Indiquez votre nom.",true); $("btnSubmit").disabled=false; return; } if(!phone){ msg("Indiquez votre numéro de téléphone.",true); $("btnSubmit").disabled=false; return; } if(!email){ msg("Indiquez votre adresse email.",true); $("btnSubmit").disabled=false; return; }
       const cred=await createUserWithEmailAndPassword(auth,email,pw);
       pendingProfile={name,email,phone,role:"client"};
       await setDoc(doc(db,"users",cred.user.uid),Object.assign({createdAt:serverTimestamp()},pendingProfile));
@@ -544,6 +556,7 @@ window.createClient=async function(){
   var name=$("ncName").value.trim(), email=$("ncEmail").value.trim().toLowerCase(), phone=$("ncPhone").value.trim(), addr=$("ncAddr").value.trim();
   if(!name){ out.textContent="Indiquez le nom."; return; }
   if(!email){ out.textContent="Indiquez l'email du client."; return; }
+  if(!phone){ out.textContent="Indiquez le téléphone du client."; return; }
   out.style.color="var(--muted)"; out.textContent="Création du compte…";
   var sa=secAuth();
   try{
