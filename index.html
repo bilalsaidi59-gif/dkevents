@@ -589,10 +589,22 @@ window.delSalle=async function(id){
   if(!confirm("Supprimer cette salle du carnet ?")) return;
   try{ await deleteDoc(doc(db,"salles",id)); loadSalles(); }catch(e){ alert("Erreur : "+(e.code||e.message)); }
 };
+window.deleteClientFull=async function(uid){
+  var c=CLIENTS.filter(function(x){return x.uid===uid;})[0]||{};
+  if(!confirm("Supprimer les données de "+(c.name||c.email||"ce client")+" ?\n\nSa fiche et ses commandes seront effacées. (Pour qu'il puisse se réinscrire avec le même email, supprime aussi son identifiant dans Firebase → Authentication.)")) return;
+  try{
+    var snap=await getDocs(query(collection(db,"orders"), where("uid","==",uid)));
+    var ps=[]; snap.forEach(function(d){ ps.push(deleteDoc(d.ref)); });
+    ps.push(deleteDoc(doc(db,"users",uid)));
+    await Promise.all(ps);
+    loadClients();
+    alert("Données supprimées ✓\n\nDernière étape (gratuite) pour libérer son email : Firebase → Authentication → supprime son identifiant.");
+  }catch(e){ alert("Erreur : "+((e&&e.code)||e.message||e)); }
+};
 function renderCarnet(){
   var el=$("carnetBody"); if(!el) return;
   var rs='style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"';
-  var ch=CLIENTS.length? CLIENTS.map(function(c){ return '<div '+rs+'><b>'+esc(c.name||"?")+'</b>'+(c.email?' · '+esc(c.email):'')+(c.phone?' · '+esc(c.phone):'')+'</div>'; }).join("") : '<div style="color:var(--muted);font-size:13px">Aucun client enregistré.</div>';
+  var ch=CLIENTS.length? CLIENTS.map(function(c){ return '<div '+rs+'><b>'+esc(c.name||"?")+'</b>'+(c.email?' · '+esc(c.email):'')+(c.phone?' · '+esc(c.phone):'')+' <button class="linkbtn" onclick="deleteClientFull(\''+c.uid+'\')" style="color:var(--danger);margin-left:6px">Supprimer</button></div>'; }).join("") : '<div style="color:var(--muted);font-size:13px">Aucun client enregistré.</div>';
   var sh=SALLES.length? SALLES.map(function(s){ return '<div '+rs+'><b>'+esc(s.name)+'</b>'+(s.email?' · '+esc(s.email):'')+(s.address?' · '+esc(s.address):'')+(s.notes?' <span style="color:var(--muted)">— '+esc(s.notes)+'</span>':'')+' <button class="linkbtn" onclick="delSalle(\''+s.id+'\')" style="color:var(--danger);margin-left:6px">Suppr.</button></div>'; }).join("") : '<div style="color:var(--muted);font-size:13px">Aucune salle enregistrée.</div>';
   el.innerHTML='<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:2px">👤 Clients enregistrés ('+CLIENTS.length+')</div>'+ch+'</div><div><div style="font-weight:700;font-size:13px;margin-bottom:2px">🏛 Salles / prospects ('+SALLES.length+')</div>'+sh+'</div>';
 }
