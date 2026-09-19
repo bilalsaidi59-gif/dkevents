@@ -549,7 +549,7 @@ window.createClient=async function(){
   try{
     var cred=await createUserWithEmailAndPassword(sa, email, rndPw());
     await setDoc(doc(db,"users",cred.user.uid), {name:name,email:email,phone:phone,address:addr,role:"client",createdBy:"admin",createdAt:serverTimestamp()});
-    try{ await sendPasswordResetEmail(sa, email); }catch(e){}
+    try{ await sendPasswordResetEmail(sa, email, {url:"https://dkevents.be"}); }catch(e){}
     try{ await signOut(sa); }catch(e){}
     out.style.color="#1b6b38"; out.textContent="✓ Compte créé — invitation envoyée à "+email;
     ["ncName","ncEmail","ncPhone","ncAddr"].forEach(function(id){ $(id).value=""; });
