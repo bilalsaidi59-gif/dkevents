@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DK Events — Location de matériel événementiel à Bruxelles</title>
 <meta name="description" content="DK Events loue du matériel événementiel professionnel à Bruxelles et dans le Benelux : sonorisation, machines à fumée, étincelles froides et powerbanks. Mariages, anniversaires, soirées et événements d'entreprise — demande de réservation en ligne.">
+<meta name="google-site-verification" content="PNimMY9gVcQK6lNHulx_baDlxvxzwcew848n5gGpNOU">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#141414">
 <link rel="canonical" href="https://dkevents.be/">
@@ -238,8 +239,8 @@ textarea.field{resize:vertical;min-height:88px}
   </div></header>
   <main class="wrap" style="padding:30px 22px 60px">
     <h1 style="font-size:26px;margin-bottom:16px">Demandes de réservation</h1>
-    <button class="btn" id="btnNewOrder" onclick="toggleNewOrder()" style="margin-bottom:18px">+ Nouvelle commande</button>
-    <div id="newOrderForm" class="neworder hidden">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px"><button class="btn" id="btnNewOrder" onclick="toggleNewOrder()">+ Nouvel événement</button><button class="btn" id="btnNewClient" onclick="toggleNewClient()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">+ Nouveau client</button><button class="btn" id="btnNewSalle" onclick="toggleNewSalle()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">+ Nouvelle salle</button><button class="btn" id="btnCarnet" onclick="toggleCarnet()" style="background:var(--surface);color:var(--text);border:1px solid var(--line)">📇 Carnet</button></div>
+    <div id="carnetBody" class="neworder hidden"></div><div id="newClientForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouveau client — crée un compte et envoie l'invitation par email</div><div class="no-grid"><div><label>Nom du client *</label><input class="field" id="ncName" type="text"></div><div><label>Email * (reçoit l'invitation)</label><input class="field" id="ncEmail" type="email"></div><div><label>Téléphone</label><input class="field" id="ncPhone" type="tel"></div><div><label>Adresse</label><input class="field" id="ncAddr" type="text"></div></div><button class="btn" onclick="createClient()" style="margin-top:14px">Créer le compte + inviter</button><span id="ncOut" style="margin-left:12px;font-size:13px"></span></div><div id="newSalleForm" class="neworder hidden"><div style="font-weight:700;margin-bottom:10px">Nouvelle salle / prospect</div><div class="no-grid"><div><label>Nom de la salle *</label><input class="field" id="nsName" type="text"></div><div><label>Email</label><input class="field" id="nsEmail" type="email"></div><div><label>Adresse</label><input class="field" id="nsAddr" type="text"></div><div><label>Notes</label><input class="field" id="nsNotes" type="text"></div></div><button class="btn" onclick="createSalle()" style="margin-top:14px">Enregistrer la salle</button><span id="nsOut" style="margin-left:12px;font-size:13px"></span></div><div id="newOrderForm" class="neworder hidden"><div style="margin-bottom:12px"><label>Client existant</label><select class="field" id="noClientPick" onchange="pickClient(this.value)"><option value="">— Nouveau client / saisie manuelle —</option></select></div>
       <div class="no-grid">
         <div><label>Nom du client *</label><input class="field" id="noName" type="text"></div>
         <div><label>Téléphone *</label><input class="field" id="noPhone" type="tel"></div>
@@ -366,7 +367,7 @@ textarea.field{resize:vertical;min-height:88px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, addDoc, collection, serverTimestamp, getDocs, query, orderBy, where, updateDoc, deleteDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -502,7 +503,7 @@ function renderCalendar(){
 }
 window.setFilter=function(s){ filterStatus=s; currentPage=1; renderDashboard(); };
 window.setSearch=function(v){ filterQuery=(v||"").trim().toLowerCase(); currentPage=1; renderList(); };
-window.toggleNewOrder=function(){ var f=$("newOrderForm"); if(!f) return; var wasHidden=f.classList.contains("hidden"); f.classList.toggle("hidden"); if(wasHidden){ $("noStart").innerHTML=timeOptionsHTML(""); $("noEnd").innerHTML=timeOptionsHTML(""); $("noItems").innerHTML=CONFIG.products.filter(function(p){return p.active!==false;}).map(function(p){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0"><span style="font-size:13.5px">'+esc(p.name)+' <span style="color:var(--muted)">'+(p.price==null?"sur devis":money(p.price))+'</span></span><input class="field" type="number" min="0" value="0" id="noq-'+p.id+'" style="width:70px"></div>'; }).join(""); } };
+window.toggleNewOrder=function(){ var f=$("newOrderForm"); if(!f) return; closeCreatePanels("newOrderForm"); var wasHidden=f.classList.contains("hidden"); f.classList.toggle("hidden"); if(wasHidden){ $("noStart").innerHTML=timeOptionsHTML(""); $("noEnd").innerHTML=timeOptionsHTML(""); $("noItems").innerHTML=CONFIG.products.filter(function(p){return p.active!==false;}).map(function(p){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0"><span style="font-size:13.5px">'+esc(p.name)+' <span style="color:var(--muted)">'+(p.price==null?"sur devis":money(p.price))+'</span></span><input class="field" type="number" min="0" value="0" id="noq-'+p.id+'" style="width:70px"></div>'; }).join(""); } };
 window.createOrder=async function(){
   var out=$("noMsgOut"); out.style.color="var(--danger)";
   var name=$("noName").value.trim(), phone=$("noPhone").value.trim();
@@ -512,10 +513,76 @@ window.createOrder=async function(){
   CONFIG.products.forEach(function(p){ var el=$("noq-"+p.id); if(!el) return; var q=parseInt(el.value,10)||0; if(q>0){ items.push({id:p.id,name:p.name,quantity:q,price:(p.price==null?null:p.price)}); if(p.price==null) quote=true; else total+=p.price*q; } });
   if(!items.length){ out.textContent="Ajoutez au moins un matériel."; return; }
   var order={ client:{name:name,phone:phone,email:$("noEmail").value.trim(),address:$("noAddr").value.trim(),message:$("noMsg").value.trim()}, items:items, rental:{date:$("noDate").value,startTime:$("noStart").value,endTime:$("noEnd").value}, estimatedTotal:total, hasQuoteItems:quote, status:"en attente", source:"admin", createdAt:serverTimestamp() };
+  if(noClientUid) order.uid=noClientUid;
   out.style.color="var(--muted)"; out.textContent="Création…";
   try{ await addDoc(collection(db,"orders"),order); }catch(e){ out.style.color="var(--danger)"; out.textContent="Erreur : "+(e.code||e.message); return; }
-  out.textContent=""; ["noName","noPhone","noEmail","noAddr","noDate","noMsg"].forEach(function(id){ $(id).value=""; }); $("newOrderForm").classList.add("hidden"); loadOrders();
+  out.textContent=""; ["noName","noPhone","noEmail","noAddr","noDate","noMsg"].forEach(function(id){ $(id).value=""; }); noClientUid=""; if($("noClientPick")) $("noClientPick").value=""; $("newOrderForm").classList.add("hidden"); loadOrders();
 };
+/* ---- CLIENTS & SALLES (admin) ---- */
+var CLIENTS=[], SALLES=[], noClientUid="", _sec=null;
+function secAuth(){ if(!_sec){ _sec=getAuth(initializeApp(firebaseConfig,"secondary")); } return _sec; }
+function rndPw(){ return "Dk!"+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6).toUpperCase(); }
+async function loadClients(){
+  try{ var snap=await getDocs(query(collection(db,"users"), where("role","==","client"))); CLIENTS=[]; snap.forEach(function(d){ CLIENTS.push(Object.assign({uid:d.id}, d.data())); }); CLIENTS.sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); }); }catch(e){ CLIENTS=[]; }
+  fillClientPicker(); renderCarnet();
+}
+async function loadSalles(){
+  try{ var snap=await getDocs(collection(db,"salles")); SALLES=[]; snap.forEach(function(d){ SALLES.push(Object.assign({id:d.id}, d.data())); }); SALLES.sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); }); }catch(e){ SALLES=[]; }
+  renderCarnet();
+}
+function fillClientPicker(){
+  var sel=$("noClientPick"); if(!sel) return;
+  sel.innerHTML='<option value="">— Nouveau client / saisie manuelle —</option>'+CLIENTS.map(function(c){ return '<option value="'+c.uid+'">'+esc(c.name||c.email||"?")+(c.email?' ('+esc(c.email)+')':'')+'</option>'; }).join("");
+}
+window.pickClient=function(uid){ noClientUid=uid||""; var c=CLIENTS.filter(function(x){return x.uid===uid;})[0]; if(c){ $("noName").value=c.name||""; $("noPhone").value=c.phone||""; $("noEmail").value=c.email||""; $("noAddr").value=c.address||""; } };
+function closeCreatePanels(except){ ["newOrderForm","newClientForm","newSalleForm","carnetBody"].forEach(function(id){ if(id!==except){ var e=$(id); if(e) e.classList.add("hidden"); } }); }
+window.toggleNewClient=function(){ var f=$("newClientForm"); if(!f) return; var h=f.classList.contains("hidden"); closeCreatePanels("newClientForm"); f.classList.toggle("hidden", !h); };
+window.toggleNewSalle=function(){ var f=$("newSalleForm"); if(!f) return; var h=f.classList.contains("hidden"); closeCreatePanels("newSalleForm"); f.classList.toggle("hidden", !h); };
+window.toggleCarnet=function(){ var f=$("carnetBody"); if(!f) return; var h=f.classList.contains("hidden"); closeCreatePanels("carnetBody"); f.classList.toggle("hidden", !h); };
+window.createClient=async function(){
+  var out=$("ncOut"); out.style.color="var(--danger)";
+  var name=$("ncName").value.trim(), email=$("ncEmail").value.trim().toLowerCase(), phone=$("ncPhone").value.trim(), addr=$("ncAddr").value.trim();
+  if(!name){ out.textContent="Indiquez le nom."; return; }
+  if(!email){ out.textContent="Indiquez l'email du client."; return; }
+  out.style.color="var(--muted)"; out.textContent="Création du compte…";
+  var sa=secAuth();
+  try{
+    var cred=await createUserWithEmailAndPassword(sa, email, rndPw());
+    await setDoc(doc(db,"users",cred.user.uid), {name:name,email:email,phone:phone,address:addr,role:"client",createdBy:"admin",createdAt:serverTimestamp()});
+    try{ await sendPasswordResetEmail(sa, email); }catch(e){}
+    try{ await signOut(sa); }catch(e){}
+    out.style.color="#1b6b38"; out.textContent="✓ Compte créé — invitation envoyée à "+email;
+    ["ncName","ncEmail","ncPhone","ncAddr"].forEach(function(id){ $(id).value=""; });
+    loadClients();
+  }catch(e){
+    try{ await signOut(sa); }catch(_){}
+    out.style.color="var(--danger)";
+    out.textContent = e.code==="auth/email-already-in-use" ? "Cet email a déjà un compte." : ("Erreur : "+(e.code||e.message));
+  }
+};
+window.createSalle=async function(){
+  var out=$("nsOut"); out.style.color="var(--danger)";
+  var name=$("nsName").value.trim(), email=$("nsEmail").value.trim(), addr=$("nsAddr").value.trim(), notes=$("nsNotes").value.trim();
+  if(!name){ out.textContent="Indiquez le nom de la salle."; return; }
+  out.style.color="var(--muted)"; out.textContent="Enregistrement…";
+  try{
+    await addDoc(collection(db,"salles"), {name:name,email:email,address:addr,notes:notes,createdAt:serverTimestamp()});
+    out.style.color="#1b6b38"; out.textContent="✓ Salle enregistrée.";
+    ["nsName","nsEmail","nsAddr","nsNotes"].forEach(function(id){ $(id).value=""; });
+    loadSalles();
+  }catch(e){ out.style.color="var(--danger)"; out.textContent="Erreur : "+(e.code||e.message); }
+};
+window.delSalle=async function(id){
+  if(!confirm("Supprimer cette salle du carnet ?")) return;
+  try{ await deleteDoc(doc(db,"salles",id)); loadSalles(); }catch(e){ alert("Erreur : "+(e.code||e.message)); }
+};
+function renderCarnet(){
+  var el=$("carnetBody"); if(!el) return;
+  var rs='style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"';
+  var ch=CLIENTS.length? CLIENTS.map(function(c){ return '<div '+rs+'><b>'+esc(c.name||"?")+'</b>'+(c.email?' · '+esc(c.email):'')+(c.phone?' · '+esc(c.phone):'')+'</div>'; }).join("") : '<div style="color:var(--muted);font-size:13px">Aucun client enregistré.</div>';
+  var sh=SALLES.length? SALLES.map(function(s){ return '<div '+rs+'><b>'+esc(s.name)+'</b>'+(s.email?' · '+esc(s.email):'')+(s.address?' · '+esc(s.address):'')+(s.notes?' <span style="color:var(--muted)">— '+esc(s.notes)+'</span>':'')+' <button class="linkbtn" onclick="delSalle(\''+s.id+'\')" style="color:var(--danger);margin-left:6px">Suppr.</button></div>'; }).join("") : '<div style="color:var(--muted);font-size:13px">Aucune salle enregistrée.</div>';
+  el.innerHTML='<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:2px">👤 Clients enregistrés ('+CLIENTS.length+')</div>'+ch+'</div><div><div style="font-weight:700;font-size:13px;margin-bottom:2px">🏛 Salles / prospects ('+SALLES.length+')</div>'+sh+'</div>';
+}
 window.clearDay=function(){ filterDay=""; currentPage=1; renderDashboard(); };
 window.goPage=function(p){ currentPage=p; renderList(); try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){} };
 window.calNav=function(delta){ calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1); renderCalendar(); };
@@ -622,7 +689,7 @@ onAuthStateChanged(auth, async(user)=>{
     if(!data){ data={name:(user.email||"").split("@")[0],email:user.email,role:"client"}; setDoc(doc(db,"users",user.uid),Object.assign({createdAt:serverTimestamp()},data)).catch(()=>{}); }
   }
   currentUser=user; currentData=data; clearAuthForm();
-  if(data.role==="admin"){ $("adminWho").textContent="Admin : "+(data.name||user.email); showView("adminView"); loadOrders(); }
+  if(data.role==="admin"){ $("adminWho").textContent="Admin : "+(data.name||user.email); showView("adminView"); loadOrders(); loadClients(); loadSalles(); }
   else startBooking();
 });
 function clearAuthForm(){ ["email","pw","name","signupPhone"].forEach(i=>{ const el=$(i); if(el) el.value=""; }); msg(""); }
@@ -812,7 +879,9 @@ function renderLightbox(){
   document.getElementById("lbMedia").innerHTML=media;
   var price=p.price==null?'Sur devis':(money(p.price)+' <span style="font-weight:400;color:var(--muted);font-size:14px">'+esc(p.unit||"")+'</span>');
   var full=(p.details&&String(p.details).trim())?String(p.details):DESC[lbId];
-  var body=full?('<div class="lb-spec">'+esc(p.description||"")+'</div><p>'+esc(full).replace(/\n/g,"<br>").replace(/\* /g,"• ")+'</p>'):('<p>'+esc(p.description||"")+'</p>');
+  var OPNOTE={evolite:"Avec ou sans opératrice sur place — opératrice en option : supplément de 50 €.",ghost:"Avec ou sans opératrice sur place — opératrice en option : supplément de 50 €.",pack:"Avec ou sans opératrice sur place — opératrice en option : supplément de 50 €."};
+      var op=OPNOTE[lbId]?'<p style="font-style:italic;color:var(--muted);font-size:13px;margin-top:8px">'+esc(OPNOTE[lbId])+'</p>':'';
+      var body=full?('<div class="lb-spec">'+esc(p.description||"")+'</div><p>'+esc(full).replace(/\n/g,"<br>").replace(/\* /g,"• ")+'</p>'+op):('<p>'+esc(p.description||"")+'</p>'+op);
   document.getElementById("lbInfo").innerHTML='<span class="lb-cat">'+esc(p.category||"")+'</span><h3>'+esc(p.name)+'</h3>'+body+(p.note?'<p style="color:var(--danger);font-size:13px">'+esc(p.note)+'</p>':'')+'<div class="lb-price">'+price+'</div>';
 }
 window.openLightbox=function(id){ lbId=id; lbIdx=photoIdx[id]||0; renderLightbox(); document.getElementById("lightbox").classList.remove("hidden"); document.body.style.overflow="hidden"; };
