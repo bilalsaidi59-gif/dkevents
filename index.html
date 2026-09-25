@@ -20,7 +20,7 @@
 <meta name="twitter:title" content="DK Events — Location de matériel événementiel">
 <meta name="twitter:description" content="Sono, fumée, étincelles et powerbanks pour vos événements à Bruxelles et dans le Benelux.">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"LocalBusiness","name":"DK Events","description":"Location de matériel événementiel professionnel à Bruxelles et dans le Benelux : sonorisation, machines à fumée, étincelles froides et powerbanks.","url":"https://dkevents.be/","telephone":"+32483495859","areaServed":["Bruxelles","Belgique","Benelux"],"address":{"@type":"PostalAddress","addressLocality":"Bruxelles","addressCountry":"BE"},"sameAs":["https://instagram.com/dk_events_belgium"]}
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"DK Events","description":"Location de baffles, enceintes et sonorisation événementielle à Bruxelles et dans le Benelux : enceintes JBL, machines à fumée, étincelles froides et powerbanks. Pour mariages, communions, anniversaires, soirées et événements d'entreprise.","url":"https://dkevents.be/","telephone":"+32483495859","priceRange":"€€","areaServed":["Bruxelles","Anderlecht","Molenbeek-Saint-Jean","Schaerbeek","Ixelles","Uccle","Forest","Saint-Gilles","Etterbeek","Woluwe","Brabant flamand","Brabant wallon","Belgique","Benelux"],"keywords":"location baffle Bruxelles, location enceinte Bruxelles, location sonorisation Bruxelles, location sono Bruxelles, location enceinte JBL Bruxelles, location baffle événementiel, location sonorisation mariage, location sono anniversaire, location enceinte soirée, location matériel événementiel Bruxelles, location baffle Anderlecht, location machine à fumée Bruxelles, location étincelles froides, location fontaine à étincelles, location powerbank événement, location sonorisation Benelux","address":{"@type":"PostalAddress","addressLocality":"Bruxelles","addressCountry":"BE"},"sameAs":["https://instagram.com/dk_events_belgium"]}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
@@ -760,7 +760,7 @@ function renderCatalog(){
   $("grid").innerHTML=CONFIG.products.filter(p=>p.active!==false).map(p=>{
     const q=cart[p.id]||0, bdg=p.badge||(p.category==="Pack"?"Pack":""), photos=p.photos||(p.photo?[p.photo]:[]);
     const idx=Math.min(photoIdx[p.id]||0,Math.max(0,photos.length-1)); let media;
-    if(photos.length){ media=`<img id="cimg-${p.id}" src="${photos[idx]}" alt="${p.name}" onclick="openLightbox('${p.id}')" style="cursor:zoom-in">`;
+    if(photos.length){ media=`<img id="cimg-${p.id}" src="${photos[idx]}" alt="Location ${p.name} à Bruxelles" onclick="openLightbox('${p.id}')" style="cursor:zoom-in">`;
       if(photos.length>1) media+=`<div class="dots" id="dots-${p.id}">`+photos.map((_,i)=>`<span class="dot ${i===idx?"on":""}" onclick="setPhoto('${p.id}',${i})"></span>`).join("")+`</div>`;
     } else media=phSVG;
     media+=(bdg?`<span class="badge">${bdg}</span>`:"")+(photos.length?`<button class="zoom" onclick="openLightbox('${p.id}')" aria-label="Voir en grand">⤢</button>`:"");
@@ -918,7 +918,7 @@ function renderLightbox(){
   var photos=p.photos||(p.photo?[p.photo]:[]);
   if(lbIdx>=photos.length) lbIdx=0; if(lbIdx<0) lbIdx=photos.length-1;
   var media;
-  if(photos.length){ media='<img src="'+photos[lbIdx]+'" alt="'+esc(p.name)+'">'; if(photos.length>1){ media+='<button class="lb-nav lb-prev" onclick="lbNav(-1)" aria-label="Photo précédente">‹</button><button class="lb-nav lb-next" onclick="lbNav(1)" aria-label="Photo suivante">›</button><div class="lb-dots">'+photos.map(function(_,i){return '<span class="lb-dot '+(i===lbIdx?"on":"")+'" onclick="lbDot('+i+')"></span>';}).join("")+'</div>'; } }
+  if(photos.length){ media='<img src="'+photos[lbIdx]+'" alt="Location '+esc(p.name)+' à Bruxelles">'; if(photos.length>1){ media+='<button class="lb-nav lb-prev" onclick="lbNav(-1)" aria-label="Photo précédente">‹</button><button class="lb-nav lb-next" onclick="lbNav(1)" aria-label="Photo suivante">›</button><div class="lb-dots">'+photos.map(function(_,i){return '<span class="lb-dot '+(i===lbIdx?"on":"")+'" onclick="lbDot('+i+')"></span>';}).join("")+'</div>'; } }
   else media='<div style="color:#999;padding:50px">Pas de photo</div>';
   document.getElementById("lbMedia").innerHTML=media;
   var price=p.price==null?'Sur devis':(money(p.price)+' <span style="font-weight:400;color:var(--muted);font-size:14px">'+esc(p.unit||"")+'</span>');
